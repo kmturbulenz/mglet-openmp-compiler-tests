@@ -1,4 +1,4 @@
-### 06-module-variable
+### mapper-04-dictfields
 
 Tests if a data environment can be created and used to copy data from derived types between the host and device.
 

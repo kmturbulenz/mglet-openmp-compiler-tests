@@ -1,4 +1,4 @@
-### 10-type-base-func
+### type-03-basefunc
 
 Tests if a base function of an inheritance structure can be called.
 

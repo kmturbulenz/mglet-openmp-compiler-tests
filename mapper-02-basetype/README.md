@@ -1,4 +1,4 @@
-### 04-mapper-basetype
+### mapper-02-basetype
 
 Tests if a custom mapper of a chilid type can map members of its parent type and its own type.
 

@@ -1,4 +1,4 @@
-### 05-mapper-variants
+### mapper-03-variants
 
 Tests if different custom mappers can be used to map selective member variables.
 

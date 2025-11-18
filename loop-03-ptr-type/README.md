@@ -1,4 +1,4 @@
-### 13-loop-by-ptr-dtype
+### loop-03-ptr-type
 
 Tests if a contiguous 1D array which is a member of a derived type can be looped in two different levels. The array contains data of n domains, but is contiguously stored.
 First, a pointer is constructed in a procedure of the derived type which wraps a specific domain i of the array. This pointer is passed into a kernel function where operations are performed on the data wrapped by the pointer.

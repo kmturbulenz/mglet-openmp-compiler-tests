@@ -1,4 +1,4 @@
-### 09-type-generics
+### type-02-generics
 
 Tests if generic procedures of a derived type can be called in a target region and the correct corresponding subroutine is called depending on the function signature.
 

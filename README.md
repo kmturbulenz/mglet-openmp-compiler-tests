@@ -50,21 +50,21 @@ We obtained the data shown in the feature matrix below using the following compi
 | LLVM | flang version 22.0.0git (git@github.com:llvm/llvm-project.git ee1abb8d80691e5ef24da3273587dc789c9c6f1b) | NVIDIA GeForce RTX 5070 Ti |
 | Cray HLRS | Cray Fortran : Version 19.0.0 (20250207225012_cc4d36e4ff3377d45f0e6e892b5dacd82009a0ca) | AMD Instinct MI300A |
 
-| Case directory | Intel oneAPI | NVIDIA HPCSDK | GNU | LLVM | Cray HLRS |
+| Case | Intel oneAPI | NVIDIA HPCSDK | GNU | LLVM | Cray HLRS |
 |---|---|---|---|---|---|
-| 01-math-intrinsics | &check; | &check; | &check; | Compiler crash | &check; |
-| 02-print | Prints "*" for non-string literals | &check; | Linking error | Compiler crash | No combination of string literals and numbers allowed |
-| 03-mapper-inter-module | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | Memory access fault (caused by custom mapper) |
-| 04-mapper-basetype | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | &check; |
-| 05-mapper-variants | &check; | Custom mappers unsupported | Custom mappers unsupported | Mappers unsupported for target update construct  | Test invalid (USM) |
-| 06-mapper-dict-fields | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | Test invalid (USM) |
-| 07-module-variable | &check; | &check; | &check; | &check; | &check; |
-| 08-type-procedure | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | &check; |
-| 09-type-generics | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | &check; |
-| 10-type-base-func | Runtime Linking error | Call to type-bound procedures not allowed on device | Runtime crash (llegal memory access) | &check; | Linker error |
-| 11-loop-by-index | &check; | &check; | &check; | &check; | &check; |
-| 12-loop-by-ptr-buf | &check; | Pointer assignment on target is unsupported | Runtime crash (llegal memory access) | &check; | &check; |
-| 13-loop-by-ptr-dtype | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | Wrong result |
+| builtin-01-math | &check; | &check; | &check; | Compiler crash | &check; |
+| builtin-02-print | Prints "*" for non-string literals | &check; | Linking error | Compiler crash | No combination of string literals and numbers allowed |
+| mapper-01-inter-module | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | Memory access fault (caused by custom mapper) |
+| mapper-02-basetype | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | &check; |
+| mapper-03-variants | &check; | Custom mappers unsupported | Custom mappers unsupported | Mappers unsupported for target update construct  | Test invalid (USM) |
+| mapper-04-dictfields | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | Test invalid (USM) |
+| module-01-buf | &check; | &check; | &check; | &check; | &check; |
+| type-01-procedures | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | &check; |
+| type-02-generics | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | &check; |
+| type-03-basefunc | Runtime Linking error | Call to type-bound procedures not allowed on device | Runtime crash (llegal memory access) | &check; | Linker error |
+| loop-01-index | &check; | &check; | &check; | &check; | &check; |
+| loop-02-ptr-buf | &check; | Pointer assignment on target is unsupported | Runtime crash (llegal memory access) | &check; | &check; |
+| loop-03-ptr-type | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | Wrong result |
 
 ## MGLET mockup
 The case `mglet-mockup` combines all complexity previously tested to run a very slimmed down version of the MGLET core functionality using OpenMP offloading. No specific computation is performed. Data management and best-practice iteration over the data is applied. Any necessary workarounds for compiler bugs or missing features that can be implemented with low effort are applied.

@@ -1,4 +1,4 @@
-### 07-module-variable
+### module-01-buf
 
 Tests if an array module variable can be marked as `declare target` and used as a global in target regions.
 

@@ -1,4 +1,4 @@
-### 12-loop-by-ptr-buf
+### loop-02-ptr-buf
 
 Tests if a contiguous 1D array can be looped in two different levels. The array contains data of n domains, but is contiguously stored.
 First, a pointer is constructed in a separate subroutine which wraps a specific domain i of the array. This pointer is passed into a kernel function where operations are performed on the data wrapped by the pointer.

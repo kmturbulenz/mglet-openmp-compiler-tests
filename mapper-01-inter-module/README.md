@@ -1,4 +1,4 @@
-### 03-mapper-inter-module
+### mapper-01-inter-module
 
 Tests if a custom mapper defined in module A is recognized in module B.
 

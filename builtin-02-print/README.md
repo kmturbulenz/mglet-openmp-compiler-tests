@@ -1,4 +1,4 @@
-### 02-print
+### bultin-02-print
 
 Tests if print is supported in target regions.
 

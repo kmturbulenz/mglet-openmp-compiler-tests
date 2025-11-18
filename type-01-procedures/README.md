@@ -1,4 +1,4 @@
-### 08-type-procedures
+### type-01-procedures
 
 Tests if procedures of a derived type can be called in a target region and access its members based on a custom mapper.
 

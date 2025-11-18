@@ -1,4 +1,4 @@
-### 11-loop-by-index
+### loop-01-index
 
 Tests if a contiguous 1D array can be looped in two different levels. The array contains data of n domains, but is contiguously stored.
 First, an index is calculated to the index of first element of the i'th domain. Then, the array accessed at that element is passed into a kernel function operating on this specific domain, acting as way to access the slice of data.
