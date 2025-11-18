@@ -59,6 +59,7 @@ We obtained the data shown in the feature matrix below using the following compi
 | mapper-03-variants | &check; | Custom mappers unsupported | Custom mappers unsupported | Mappers unsupported for target update construct  | Test invalid (USM) |
 | mapper-04-dictfields | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | Test invalid (USM) |
 | module-01-buf | &check; | &check; | &check; | &check; | &check; |
+| module-02-ptr-bigbuf | &check; | &check; | &check; | &check; | &check; |
 | type-01-procedures | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | &check; |
 | type-02-generics | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | &check; |
 | type-03-basefunc | Runtime Linking error | Call to type-bound procedures not allowed on device | Runtime crash (llegal memory access) | &check; | Linker error |
