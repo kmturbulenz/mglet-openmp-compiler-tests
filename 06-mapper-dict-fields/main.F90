@@ -9,7 +9,6 @@ MODULE realfield_mod
         PROCEDURE :: finish
     END TYPE field_t
     ! (Intel) If this mapper is not explicitly defined, then we get a runtime error
-    ! (LLVM) Produces wrong result if mapper is not explicitly defined
     !$omp declare mapper(field_t :: f) map(f%buf)
 
     INTEGER, PARAMETER :: n = 1024  
@@ -32,11 +31,6 @@ END MODULE realfield_mod
 MODULE fields_mod
     USE realfield_mod
     IMPLICIT NONE
-
-    ! (LLVM) Mappers are only visible in the module they were defined in (bug)
-#ifdef __flang__
-    !$omp declare mapper(field_t :: f) map(f%buf)
-#endif
 
     INTEGER, PARAMETER :: nfields_max = 1000
     INTEGER :: nfields = 0
@@ -77,11 +71,6 @@ END MODULE fields_mod
 PROGRAM dict_fields
     USE fields_mod
     IMPLICIT NONE
-
-    ! (LLVM) Mappers are only visible in the module they were defined in (bug)
-#ifdef __flang__
-    !$omp declare mapper(field_t :: f) map(f%buf)
-#endif
 
     REAL, ALLOCATABLE :: expected_result(:)
     TYPE(field_t), POINTER :: field_1, field_2
