@@ -20,7 +20,7 @@ PROGRAM reproducer
     expected_base_arr = base_val
     expected_child_arr = child_val
 
-    !$omp target map(tofrom: typ)
+    !$omp target map(mapper(custommapper), tofrom: typ)
         typ%base_arr = base_val
         typ%child_arr = child_val
     !$omp end target
