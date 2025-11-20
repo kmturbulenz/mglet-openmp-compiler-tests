@@ -59,6 +59,7 @@ We obtained the data shown in the feature matrix below using the following compi
 | mapper-03-variants | &check; | Custom mappers unsupported | Custom mappers unsupported | Mappers unsupported for target update construct  | Test invalid (USM) |
 | mapper-04-dictfields | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | Test invalid (USM) |
 | mapper-05-alloc-field | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | Test invalid (USM) |
+| mapper-06-nested | &check; | Custom mappers unsupported | Custom mappers unsupported | Runtime segfault | Test invalid (USM) |
 | module-01-buf | &check; | &check; | &check; | &check; | &check; |
 | module-02-ptr-bigbuf | &check; | &check; | &check; | &check; | &check; |
 | type-01-procedures | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | &check; |
