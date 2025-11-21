@@ -47,7 +47,7 @@ We obtained the data shown in the feature matrix below using the following compi
 | Intel oneAPI | ifx (IFX) 2025.3.0 20251023 | Intel Corporation Lunar Lake [Intel Graphics] |
 | NVIDIA HPCSDK | nvfortran 25.9-0 64-bit target on x86-64 Linux -tp znver5 | NVIDIA GeForce RTX 5070 Ti |
 | GNU | GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0 | NVIDIA GeForce RTX 5070 Ti |
-| LLVM | flang version 22.0.0git (git@github.com:llvm/llvm-project.git ee1abb8d80691e5ef24da3273587dc789c9c6f1b) | NVIDIA GeForce RTX 5070 Ti |
+| LLVM | flang version 22.0.0git (git@github.com:llvm/llvm-project.git a8058c177d0e45993108936cfca532d3dab037fc) | NVIDIA GeForce RTX 5070 Ti |
 | Cray HLRS | Cray Fortran : Version 19.0.0 (20250207225012_cc4d36e4ff3377d45f0e6e892b5dacd82009a0ca) | AMD Instinct MI300A |
 
 | Case | Intel oneAPI | NVIDIA HPCSDK | GNU | LLVM | Cray HLRS |
