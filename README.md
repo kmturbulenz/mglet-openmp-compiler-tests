@@ -76,6 +76,9 @@ The case `mglet-mockup` combines all complexity previously tested to run a very 
 | mglet-mockup | &check; | &cross; | &cross; | &check; | &cross; |
 
 ## Orphaned Loop Bind
+> [!CAUTION]
+> Performance implications are larger than expected. This section is to be reevaluated.
+
 Assume the following way of parallelizing a 3D multigrid domain in MGLET by distributing the grids over OpenMP teams and parallelizing within the teams.
 ```fortran
 !$omp target teams loop bind(teams)
