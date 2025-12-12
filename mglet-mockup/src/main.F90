@@ -46,26 +46,10 @@ CONTAINS
         ip3 = 1
         DO i = 1, ngrids
             CALL get_dims(kk, jj, ii, i)
-            CALL expected_kernel(kk, jj, ii, expected_result(ip3), REAL(i))
+            CALL inner(kk, jj, ii, expected_result(ip3), REAL(i))
             ip3 = ip3 + ii * jj * kk
         END DO
     END SUBROUTINE get_expected
-
-    SUBROUTINE expected_kernel(kk, jj, ii, buf, val)
-        INTEGER, INTENT(IN) :: kk, jj, ii
-        REAL, INTENT(INOUT), DIMENSION(kk, jj, ii) :: buf
-        REAL, INTENT(IN) :: val
-
-        INTEGER :: i, j, k
-
-        DO i = 1, ii
-            DO j = 1, jj 
-                DO k = 1, kk 
-                    buf(k, j, i) = val
-                END DO
-            END DO
-        END DO
-    END SUBROUTINE expected_kernel
 
     SUBROUTINE compare(result, expected)
         REAL, INTENT(in), DIMENSION(:) :: result, expected

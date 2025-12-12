@@ -5,7 +5,7 @@ MODULE compute_mod
     IMPLICIT NONE
     PRIVATE
 
-    PUBLIC :: compute
+    PUBLIC :: compute, inner ! Export inner to get the expected values
 CONTAINS
     SUBROUTINE compute()
         TYPE(field_t), POINTER :: field
@@ -19,12 +19,12 @@ CONTAINS
         DO igrid = 1, ngrids
             CALL get_dims(kk, jj, ii, igrid)
             CALL field%get_ptr(grid_ptr, igrid)
-            CALL offload_kernel(kk, jj, ii, grid_ptr, REAL(igrid))
+            CALL inner(kk, jj, ii, grid_ptr, REAL(igrid))
         END DO
         !$omp end target teams loop
     END SUBROUTINE compute
 
-    SUBROUTINE offload_kernel(kk, jj, ii, ptr, val)
+    SUBROUTINE inner(kk, jj, ii, ptr, val)
         !$omp declare target
         INTEGER, INTENT(IN) :: kk, jj, ii
         REAL, INTENT(INOUT), DIMENSION(kk, jj, ii) :: ptr
@@ -45,5 +45,5 @@ CONTAINS
             END DO
         END DO
         !$omp end loop
-    END SUBROUTINE offload_kernel
+    END SUBROUTINE inner
 END MODULE compute_mod

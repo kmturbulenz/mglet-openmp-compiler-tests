@@ -11,7 +11,7 @@ PROGRAM reproducer
     !$omp target teams loop bind(teams) shared(arr) private(ip3)
     DO igrid = 1, ngrids
         ip3 = (igrid - 1) * cpg + 1
-        CALL offload_kernel(arr(ip3), REAL(igrid))
+        CALL inner(arr(ip3), REAL(igrid))
     END DO
     !$omp end target teams loop 
 
@@ -21,7 +21,7 @@ PROGRAM reproducer
     DEALLOCATE(arr)
     DEALLOCATE(expected_result)
 CONTAINS
-    SUBROUTINE offload_kernel(ptr, val)
+    SUBROUTINE inner(ptr, val)
         !$omp declare target
         REAL, INTENT(INOUT), DIMENSION(cpd, cpd, cpd) :: ptr
         REAL, INTENT(IN) :: val
@@ -42,31 +42,16 @@ CONTAINS
             END DO
         END DO
         !$omp end loop
-    END SUBROUTINE offload_kernel
+    END SUBROUTINE inner
 
     SUBROUTINE get_expected()
         INTEGER :: i, idx
 
         DO i = 1, ngrids
             idx = (i - 1) * cpg + 1
-            CALL expected_kernel(expected_result(idx), REAL(i))
+            CALL inner(expected_result(idx), REAL(i))
         END DO
     END SUBROUTINE get_expected
-
-    SUBROUTINE expected_kernel(ptr, val)
-        REAL, INTENT(INOUT), DIMENSION(cpd, cpd, cpd) :: ptr
-        REAL, INTENT(IN) :: val
-
-        INTEGER :: i, j, k
-
-        DO i = 1, cpd 
-            DO j = 1, cpd 
-                DO k = 1, cpd 
-                    ptr(k, j, i) = val
-                END DO
-            END DO
-        END DO
-    END SUBROUTINE expected_kernel
 
     SUBROUTINE compare(result, expected)
         REAL, INTENT(in), DIMENSION(:) :: result, expected
