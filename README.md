@@ -76,35 +76,47 @@ The case `mglet-mockup` combines all complexity previously tested to run a very 
 | mglet-mockup | &check; | &cross; | &cross; | &check; | &cross; |
 
 ## Orphaned Loop Bind
-> [!CAUTION]
-> Performance implications are larger than expected. This section is to be reevaluated.
 
-Assume the following way of parallelizing a 3D multigrid domain in MGLET by distributing the grids over OpenMP teams and parallelizing within the teams.
+MGLET typically uses an outer loop over all grids that calls an inner function,
+which iterates through all cells within the grid. This poses the question on how
+to parallelize the orphaned loops in `inner`. We use an `!$omp loop` construct
+in order to indicate the connection to the outer loop over the grids. The outer loop
+uses `!$omp loop bind(teams)` to bind to the coarser team parallelism. In conjuction, we want to indicate the finder level parallelism within `inner` using `bind(...)`.
+This setup causes different problems in compilers, shown in the table below.
+
 ```fortran
-!$omp target teams loop bind(teams)
+!$omp target teams loop bind(teams) private(ptr)
 DO igrid = 1, ngrid
-    CALL kernel()
+    ptr => field%arr((igrid - 1) * cpg + 1)
+    CALL kernel(ptr)
 END DO
+!$omp end target teams loop
 
-SUBROUTINE kernel()
+SUBROUTINE inner(ptr)
     !$omp declare target
 
-    !$omp loop <bind(thread) or bind(parallel)> collapse(3)
+    !$omp loop <bind(thread)|bind(parallel)> collapse(3)
     DO i = 1, ii
         DO j = 1, jj
             DO k = 1, kk
-                ...
+                ! work with ptr(k, j, i)
             END DO
         END DO
     END DO
-END SUBROUTINE kernel
+    !$omp end loop
+END SUBROUTINE inner
 ```
-Depending on the compiler, either `bind(thread)` or `bind(parallel)` produce correct results or are supported in general.
+
+Result correctness per compiler suite and binding `bind(...)`. Good performance
+close to using one equivilant loop over all cells is only reached by Cray HLRS using `bind(thread) collapse(3)` or no bind and NVIDIA HPC SDK using `bind(parallel) collapse(3)`. All other compilers are significantly worse when using orphaned loop bind compared to an equivilant single loop.
+LLVM's `flang` is roughly one order of magnitude worse in performance
+compared to NVIDIA HPCSDK's `nvfortran` on the same hardware:
 
 |  | Intel oneAPI | NVIDIA HPCSDK | GNU | LLVM | Cray HLRS |
 |---|---|---|---|---|---|
-| `bind(thread)` | &check; | serializes within team | &check; | &check; <br> compiler warning | &check; |
-| `bind(parallel)` | wrong result | &check; | application stalls indefinitely | &check; | wrong result
+| `bind(thread)` | &check; | &check; | &check;<br>Only with `collapse(3)` | &check;<br>Compiler warning | &check;<br>Only with `collapse(3)` |
+| `bind(parallel)` | Only works with `ngrid`<=50 | &check; | Stalls runtime | Runtime core dump | Wrong result |
+| no bind | &check; | &check; | &check; | &check; | &check; |
 
 # OpenMP offloading notes
 ## Vendor compatability
