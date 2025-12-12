@@ -32,9 +32,9 @@ CONTAINS
         INTEGER :: i, j, k
 
         !$omp loop collapse(3) &
-#if defined(__INTEL_COMPILER) || defined(__GFORTRAN__) || defined(_CRAYFTN)
+#if defined(__INTEL_COMPILER) || defined(__GFORTRAN__) || defined(_CRAYFTN) || defined(__flang__)
         !$omp bind(thread)
-#elif defined(__NVCOMPILER) || defined(__flang__)
+#elif defined(__NVCOMPILER)
         !$omp bind(parallel)
 #endif
         DO i = 1, ii 
