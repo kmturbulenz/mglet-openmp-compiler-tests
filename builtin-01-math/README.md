@@ -1,4 +1,4 @@
-### bultin-01-math
+### builtin-01-math
 
 Tests if math related intrinsics are supported in target regions.
 `EXP`, `SIN`, `COS`, `ACOS` and `ATAN` are tested.
