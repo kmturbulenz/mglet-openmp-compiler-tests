@@ -66,9 +66,9 @@ We obtained the data shown in the feature matrix below using the following compi
 | type-01-procedures | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | &check; |
 | type-02-generics | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | &check; |
 | type-03-basefunc | Runtime Linking error | Call to type-bound procedures not allowed on device | Runtime crash (llegal memory access) | &check; | Linker error |
-| loop-01-index | &check; | &check; | &check; | &check; | &check; |
-| loop-02-ptr-buf | &check; | Pointer assignment on target is unsupported | Runtime crash (llegal memory access) | &check; | &check; |
-| loop-03-ptr-type | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | Wrong result |
+| loop-01-index | &check; | Fails due to using member variable arr | &check; | &check; | &check; |
+| loop-02-ptr | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | Only with non-class subroutine and inlining disabled |
+| loop-03-pass-dims | &check; | Fails due to using member variable arr | &check; | &check; | &check; |
 
 ## MGLET mockup
 The case `mglet-mockup` combines all complexity previously tested to run a very slimmed down version of the MGLET core functionality using OpenMP offloading. No specific computation is performed. Data management and best-practice iteration over the data is applied. Any necessary workarounds for compiler bugs or missing features that can be implemented with low effort are applied.

@@ -1,12 +1,46 @@
-MODULE const_mod
+MODULE grids_mod
     INTEGER, PARAMETER :: ngrids = 64
-    INTEGER, PARAMETER :: cpd = 32
-    INTEGER, PARAMETER :: cpg = cpd**3
-    INTEGER, PARAMETER :: ncells = ngrids * cpg
-END MODULE const_mod
+
+    INTEGER :: ncells
+    INTEGER :: grid_dims(ngrids)
+    INTEGER :: grid_offsets(ngrids)
+    !$omp declare target(grid_dims, grid_offsets)
+CONTAINS
+    SUBROUTINE init_grids()
+        INTEGER :: i, offset
+
+        offset = 1
+        DO i = 1, ngrids
+            grid_dims(i) = 32 + i / 8
+            grid_offsets(i) = offset
+            ncells = ncells + grid_dims(i)**3
+            offset = offset + grid_dims(i)**3
+        END DO
+
+        !$omp target update to(grid_dims, grid_offsets)
+    END SUBROUTINE init_grids
+
+    SUBROUTINE get_dims(kk, jj, ii, igrid)
+        !$omp declare target
+        INTEGER, INTENT(OUT) :: kk, jj, ii
+        INTEGER, INTENT(IN) :: igrid
+
+        kk = grid_dims(igrid)
+        jj = grid_dims(igrid)
+        ii = grid_dims(igrid)
+    END SUBROUTINE get_dims
+
+    SUBROUTINE get_ip3(ip3, igrid)
+        !$omp declare target
+        INTEGER, INTENT(OUT) :: ip3
+        INTEGER, INTENT(IN) :: igrid
+
+        ip3 = grid_offsets(igrid)
+    END SUBROUTINE get_ip3
+END MODULE grids_mod
 
 MODULE field_mod
-    USE const_mod
+    USE grids_mod
     IMPLICIT NONE
 
     TYPE :: field_t
@@ -19,25 +53,27 @@ PROGRAM reproducer
     IMPLICIT NONE
 
     REAL, ALLOCATABLE, TARGET, DIMENSION(:) :: expected_result
+    CALL init_grids()
     ALLOCATE(expected_result(ncells), source=0.0)
-    CALL compute_expected()
 
+    CALL compute_expected()
     CALL test()
     DEALLOCATE(expected_result)
 CONTAINS
     SUBROUTINE test()
         TYPE(field_t) :: field
-        INTEGER :: igrid, ip3
+        INTEGER :: igrid, ip3, kk, jj, ii
 
         ALLOCATE(field%arr(ncells), source=1.0)
 
-        !$omp target teams loop bind(teams) shared(field) private(ip3)
+        !$omp target teams loop bind(teams) shared(field) private(ip3, kk, jj, ii)
         DO igrid = 1, ngrids
-            ip3 = (igrid - 1) * cpg + 1
+            CALL get_dims(kk, jj, ii, igrid)
+            CALL get_ip3(ip3, igrid)
 #if defined(__INTEL_COMPILER)
             !$omp parallel
 #endif
-            CALL inner(field%arr(ip3), REAL(igrid))
+            CALL inner(kk, jj, ii, field%arr(ip3), REAL(igrid))
 #if defined(__INTEL_COMPILER)
             !$omp end parallel
 #endif
@@ -49,9 +85,10 @@ CONTAINS
         DEALLOCATE(field%arr)
     END SUBROUTINE test
 
-    SUBROUTINE inner(ptr, val)
+    SUBROUTINE inner(kk, jj, ii, ptr, val)
         !$omp declare target
-        REAL, INTENT(INOUT), DIMENSION(cpd, cpd, cpd) :: ptr
+        INTEGER, INTENT(IN) :: kk, jj, ii
+        REAL, INTENT(INOUT), DIMENSION(kk, jj, ii) :: ptr
         REAL, INTENT(IN) :: val
 
         INTEGER :: i, j, k
@@ -63,9 +100,9 @@ CONTAINS
         !$omp bind(thread) &
 #endif
         !$omp collapse(3)
-        DO i = 1, cpd 
-            DO j = 1, cpd 
-                DO k = 1, cpd 
+        DO i = 1, ii
+            DO j = 1, jj
+                DO k = 1, kk
                     ptr(k, j, i) = val
                 END DO
             END DO
@@ -74,11 +111,12 @@ CONTAINS
     END SUBROUTINE inner
 
     SUBROUTINE compute_expected()
-        INTEGER :: igrid, ip3
+        INTEGER :: igrid, ip3, kk, jj, ii
 
         DO igrid = 1, ngrids
-            ip3 = (igrid - 1) * cpg + 1
-            CALL inner(expected_result(ip3), REAL(igrid))
+            CALL get_dims(kk, jj, ii, igrid)
+            CALL get_ip3(ip3, igrid)
+            CALL inner(kk, jj, ii, expected_result(ip3), REAL(igrid))
         END DO
     END SUBROUTINE compute_expected
 

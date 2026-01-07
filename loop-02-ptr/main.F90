@@ -1,5 +1,11 @@
+! Optionally set -D_PTR_TYP_ to switch to a global subroutine instead of a
+! procedure of the field type to get ptr
+
 MODULE const_mod
-    INTEGER, PARAMETER :: ngrids = 3, cpd = 32, cpg = cpd**3, ncells = ngrids * cpg
+    INTEGER, PARAMETER :: ngrids = 64
+    INTEGER, PARAMETER :: cpd = 32
+    INTEGER, PARAMETER :: cpg = cpd**3
+    INTEGER, PARAMETER :: ncells = ngrids * cpg
 END MODULE const_mod
 
 MODULE field_mod
@@ -9,13 +15,12 @@ MODULE field_mod
     TYPE :: field_t
         REAL, ALLOCATABLE :: arr(:)
     CONTAINS
-        PROCEDURE :: get_ptr
+        PROCEDURE :: get_ptr_class
     END TYPE field_t
 CONTAINS
-    SUBROUTINE get_ptr(this, ptr, i)
-        CLASS(field_t), INTENT(INOUT), TARGET :: this
-
+    SUBROUTINE get_ptr_class(this, ptr, i)
         !$omp declare target
+        CLASS(field_t), INTENT(INOUT), TARGET :: this
         REAL, POINTER, CONTIGUOUS, INTENT(OUT) :: ptr(:, :, :)
         INTEGER, INTENT(IN) :: i
 
@@ -23,40 +28,71 @@ CONTAINS
         ip3 = (i - 1) * cpg + 1
 
         ptr(1:cpd, 1:cpd, 1:cpd) => this%arr(ip3:ip3+cpg-1)
-    END SUBROUTINE get_ptr
+    END SUBROUTINE get_ptr_class
+
+    SUBROUTINE get_ptr_typ(field, ptr, i)
+        !$omp declare target
+        TYPE(field_t), INTENT(INOUT), TARGET :: field
+        REAL, POINTER, CONTIGUOUS, INTENT(OUT) :: ptr(:, :, :)
+        INTEGER, INTENT(IN) :: i
+
+        INTEGER :: ip3
+        ip3 = (i - 1) * cpg + 1
+
+        ptr(1:cpd, 1:cpd, 1:cpd) => field%arr(ip3:ip3+cpg-1)
+    END SUBROUTINE get_ptr_typ
 END MODULE field_mod
 
 PROGRAM reproducer
     USE field_mod
     IMPLICIT NONE
 
-    TYPE(field_t) :: field
     REAL, ALLOCATABLE, TARGET, DIMENSION(:) :: expected_result
-    REAL, POINTER, CONTIGUOUS :: arr_ptr(:, :, :)
-    INTEGER :: igrid
-
-    ALLOCATE(field%arr(ncells), source=1.0)
     ALLOCATE(expected_result(ncells), source=0.0)
+    CALL compute_expected()
 
-    !$omp target teams loop bind(teams) private(arr_ptr)
-    DO igrid = 1, ngrids
-        CALL field%get_ptr(arr_ptr, igrid)
+    CALL test()
+    DEALLOCATE(expected_result)
+CONTAINS
+    SUBROUTINE test()
+        TYPE(field_t) :: field
+        REAL, POINTER, CONTIGUOUS :: arr_ptr(:, :, :)
+        INTEGER :: igrid
+
+        ALLOCATE(field%arr(ncells), source=1.0)
+
+        !$omp target teams loop bind(teams) private(arr_ptr)
+        DO igrid = 1, ngrids
+#ifdef _PTR_TYP_
+            CALL get_ptr_typ(field, arr_ptr, igrid)
+#else
+            CALL field%get_ptr_class(arr_ptr, igrid)
+#endif
 #if defined(__INTEL_COMPILER)
             !$omp parallel
 #endif
-        CALL inner(arr_ptr, REAL(igrid))
+#if defined(_CRAYFTN)
+            ! Cray currently has a bug such that data copying is only
+            ! correct if inlining is disabled when calling the kernel
+            ! if the pointer is constructed through a subroutine
+            ! taking in a derived type
+            !DIR$ NOINLINE
+#endif
+            CALL inner(arr_ptr, REAL(igrid))
+#if defined(_CRAYFTN)
+            !DIR$ RESETINLINE
+#endif
 #if defined(__INTEL_COMPILER)
             !$omp end parallel
 #endif
-    END DO
-    !$omp end target teams loop 
+        END DO
+        !$omp end target teams loop 
 
-    CALL get_expected()
-    CALL compare(field%arr, expected_result)
+        CALL compare(field%arr, expected_result)
 
-    DEALLOCATE(field%arr)
-    DEALLOCATE(expected_result)
-CONTAINS
+        DEALLOCATE(field%arr)
+    END SUBROUTINE test
+
     SUBROUTINE inner(ptr, val)
         !$omp declare target
         REAL, INTENT(INOUT), DIMENSION(cpd, cpd, cpd) :: ptr
@@ -81,14 +117,14 @@ CONTAINS
         !$omp end loop
     END SUBROUTINE inner
 
-    SUBROUTINE get_expected()
+    SUBROUTINE compute_expected()
         INTEGER :: i, idx
 
         DO i = 1, ngrids
             idx = (i - 1) * cpg + 1
             CALL inner(expected_result(idx), REAL(i))
         END DO
-    END SUBROUTINE get_expected
+    END SUBROUTINE compute_expected
 
     SUBROUTINE compare(result, expected)
         REAL, INTENT(in), DIMENSION(:) :: result, expected
