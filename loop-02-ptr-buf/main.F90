@@ -12,7 +12,13 @@ PROGRAM reproducer
     !$omp target teams loop bind(teams) private(arr_ptr)
     DO igrid = 1, ngrids
         CALL get_ptr(arr_ptr, arr, igrid)
+#if defined(__INTEL_COMPILER)
+            !$omp parallel
+#endif
         CALL inner(arr_ptr, REAL(igrid))
+#if defined(__INTEL_COMPILER)
+            !$omp end parallel
+#endif
     END DO
     !$omp end target teams loop 
 
@@ -41,12 +47,13 @@ CONTAINS
 
         INTEGER :: i, j, k
 
-        !$omp loop collapse(3) &
-#if defined(__INTEL_COMPILER) || defined(__GFORTRAN__) || defined(_CRAYFTN) || defined(__flang__)
-        !$omp bind(thread)
-#elif defined(__NVCOMPILER)
-        !$omp bind(parallel)
+        !$omp loop &
+#if defined(__INTEL_COMPILER) || defined(__NVCOMPILER)
+        !$omp bind(parallel) &
+#elif defined(__flang__) || defined(_CRAYFTN) || defined(__GFORTRAN__)
+        !$omp bind(thread) &
 #endif
+        !$omp collapse(3)
         DO i = 1, cpd 
             DO j = 1, cpd 
                 DO k = 1, cpd 
