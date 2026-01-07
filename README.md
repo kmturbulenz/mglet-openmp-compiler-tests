@@ -78,46 +78,54 @@ The case `mglet-mockup` combines all complexity previously tested to run a very 
 
 ## Orphaned Loop Bind
 
-MGLET typically uses an outer loop over all grids that calls an inner function,
-which iterates through all cells within the grid. This poses the question on how
-to parallelize the orphaned loops in `inner`. We use an `!$omp loop` construct
-in order to indicate the connection to the outer loop over the grids. The outer loop
-uses `!$omp loop bind(teams)` to bind to the coarser team parallelism. In conjuction, we want to indicate the finder level parallelism within `inner` using `bind(...)`.
-This setup causes different problems in compilers, shown in the table below.
+MGLET typically uses an outer iterating through all grids and calls an inner function that iterates through all cells within the grid. For performance it is critical to instruct OpenMP correctly to get correct parallelization recognizing the orphaned loop behind the function call.
+The snippet below shows how to reach optimal parallelization:
 
 ```fortran
-!$omp target teams loop bind(teams) private(ptr)
+! Prerequisites for snippet:
+! field ... object storing cell data in an 'arr' allocatable
+! cpg   ... number of cells per grid
+! cpd   ... number of cells per dimension in a grid
+! ii    ... number of cells in x-dir
+! jj    ... number of cells in y-dir
+! kk    ... number of cells in z-dir
+
+INTEGER :: index_pointer
+
+!$omp target teams loop bind(teams) private(index_pointer)
 DO igrid = 1, ngrid
-    ptr => field%arr((igrid - 1) * cpg + 1)
-    CALL kernel(ptr)
+    index_pointer = (igrid - 1) * cpg + 1
+#if defined(__INTEL_COMPILER)
+    !$omp parallel
+#endif
+    CALL kernel(field%arr(index_pointer))
+#if defined(__INTEL_COMPILER)
+    !$omp end parallel
+#endif
 END DO
 !$omp end target teams loop
 
 SUBROUTINE inner(ptr)
     !$omp declare target
+    REAL, INTENT(INOUT), DIMENSION(cpd, cpd, cpd) :: ptr 
 
-    !$omp loop <bind(thread)|bind(parallel)> collapse(3)
+    !$omp loop &
+#if defined(__INTEL_COMPILER) || defined(__NVCOMPILER)
+    !$omp bind(parallel) &
+#elif defined(__flang__) || defined(_CRAYFTN) || defined(__GFORTRAN__)
+    !$omp bind(thread) &
+#endif
+    !$omp collapse(3)
     DO i = 1, ii
         DO j = 1, jj
             DO k = 1, kk
-                ! work with ptr(k, j, i)
+                ! read and write to ptr(k, j, i) to modify cell values
             END DO
         END DO
     END DO
     !$omp end loop
 END SUBROUTINE inner
 ```
-
-Result correctness per compiler suite and binding `bind(...)`. Good performance
-close to using one equivilant loop over all cells is only reached by Cray HLRS using `bind(thread) collapse(3)` or no bind and NVIDIA HPC SDK using `bind(parallel) collapse(3)`. All other compilers are significantly worse when using orphaned loop bind compared to an equivilant single loop.
-LLVM's `flang` is roughly one order of magnitude worse in performance
-compared to NVIDIA HPCSDK's `nvfortran` on the same hardware:
-
-|  | Intel oneAPI | NVIDIA HPCSDK | GNU | LLVM | Cray HLRS |
-|---|---|---|---|---|---|
-| `bind(thread)` | &check; | &check; | &check;<br>Only with `collapse(3)` | &check;<br>Compiler warning | &check;<br>Only with `collapse(3)` |
-| `bind(parallel)` | Only works with `ngrid`<=50 | &check; | Stalls runtime | Runtime core dump | Wrong result |
-| no bind | &check; | &check; | &check; | &check; | &check; |
 
 # OpenMP offloading notes
 ## Vendor compatability
