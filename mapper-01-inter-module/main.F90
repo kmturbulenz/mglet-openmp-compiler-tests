@@ -26,7 +26,9 @@ CONTAINS
 
         ! (INTEL) Be careful with mapping scalars. There is a bug that changes the mapping behavior
         ! of scalars when a custom mapper is used in another mapping. Thus we use a one-sized array.
-        !$omp target map(mapper(custom), tofrom: field) map(from: result_buf)
+        ! (Cray) The order of mapping matters here. If the mapper(custom) is put first
+        ! then the program will core dump with a memory access fault
+        !$omp target map(from: result_buf) map(mapper(custom), tofrom: field)
         result_buf(:) = field%buf(:)
         result_val(:) = field%val
         !$omp end target

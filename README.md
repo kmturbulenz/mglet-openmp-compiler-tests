@@ -55,7 +55,7 @@ We obtained the data shown in the feature matrix below using the following compi
 | builtin-01-math | &check; | &check; | &check; | Compiler crash | &check; |
 | builtin-02-print | Prints "*" for non-string literals | &check; | Linking error | Compiler crash | No combination of string literals and numbers allowed |
 | builtin-03-ieee | &check; | &check; | &check; | Compiler error: REAL(KIND=10) is not an enabled type for this target | &check; |
-| mapper-01-inter-module | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | Memory access fault (caused by custom mapper) |
+| mapper-01-inter-module | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | &check; |
 | mapper-02-basetype | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | &check; |
 | mapper-03-variants | &check; | Custom mappers unsupported | Custom mappers unsupported | Mappers unsupported for target update construct  | Test invalid (USM) |
 | mapper-04-dictfields | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | Test invalid (USM) |
