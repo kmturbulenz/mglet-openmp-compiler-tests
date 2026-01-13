@@ -105,7 +105,7 @@ DO igrid = 1, ngrid
 END DO
 !$omp end target teams loop
 
-SUBROUTINE inner(ptr)
+SUBROUTINE kernel(ptr)
     !$omp declare target
     REAL, INTENT(INOUT), DIMENSION(cpd, cpd, cpd) :: ptr 
 
