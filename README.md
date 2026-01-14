@@ -66,7 +66,7 @@ We obtained the data shown in the feature matrix below using the following compi
 | type-01-procedures | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | &check; |
 | type-02-generics | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | &check; |
 | type-03-basefunc | Runtime Linking error | Call to type-bound procedures not allowed on device | Runtime crash (llegal memory access) | &check; | Linker error |
-| loop-01-index | &check; | Fails due to using member variable arr | &check; | &check; | &check; |
+| loop-01-index | &check; | Compiler crash | &check; | &check; | &check; |
 | loop-02-ptr | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | Only with non-class subroutine and inlining disabled |
 | loop-03-pass-dims | &check; | Fails due to using member variable arr | &check; | &check; | &check; |
 
