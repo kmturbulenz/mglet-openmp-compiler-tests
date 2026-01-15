@@ -74,7 +74,7 @@ We obtained the data shown in the feature matrix below using the following compi
 The case `mglet-mockup` combines all complexity previously tested to run a very slimmed down version of the MGLET core functionality using OpenMP offloading. No specific computation is performed. Data management and best-practice iteration over the data is applied. Any necessary workarounds for compiler bugs or missing features that can be implemented with low effort are applied.
 |  | Intel oneAPI | NVIDIA HPCSDK | GNU | LLVM | Cray HLRS |
 |---|---|---|---|---|---|
-| mglet-mockup | &check; | &cross; | &cross; | &check; | &cross; |
+| mglet-mockup | &check; | &cross; | &cross; | &check; | Only with `-D_INDEX_` (default) and `-D_NO_CUSTOM_DEFAULT_MAPPER_` |
 
 ## Orphaned Loop Bind
 
