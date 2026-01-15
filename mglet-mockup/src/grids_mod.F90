@@ -9,22 +9,24 @@ MODULE grids_mod
         INTEGER :: jj
         INTEGER :: kk
     END TYPE gridinfo_t
-    !$omp declare mapper(gridinfo_t :: g) map(g%ii, g%jj, g%kk, g%igrid)
+#ifndef _NO_CUSTOM_DEFAULT_MAPPER_
+    !$omp declare mapper(gridinfo_t :: g) map(g%igrid, g%ii, g%jj, g%kk)
+#endif
 
     TYPE(gridinfo_t), ALLOCATABLE :: gridinfo(:)
-    INTEGER :: ngrids
+    INTEGER :: ngrid
 
-    !$omp declare target(gridinfo, ngrids)
+    !$omp declare target(gridinfo, ngrid)
 
-    PUBLIC :: init_grids, get_dims, ngrids, finish_grids
+    PUBLIC :: init_grids, get_dims, ngrid, finish_grids
 CONTAINS
     SUBROUTINE init_grids()
         INTEGER :: i
 
-        ngrids = DOMAIN_NGRIDS
+        ngrid = DOMAIN_NGRIDS
 
-        ALLOCATE(gridinfo(ngrids))
-        DO i = 1, ngrids
+        ALLOCATE(gridinfo(ngrid))
+        DO i = 1, ngrid
             gridinfo(i)%igrid=i
             gridinfo(i)%ii = GRID_II
             gridinfo(i)%jj = GRID_JJ
@@ -32,8 +34,8 @@ CONTAINS
         END DO
         !$omp target enter data map(always, to: gridinfo)
 
-        ! (Intel) Putting ngrids into the mapping above does not work (mapping overridden by custom mapper - is reported)
-        !$omp target enter data map(always, to: ngrids)
+        ! (Intel) Putting ngrid into the mapping above does not work (mapping overridden by custom mapper - is reported)
+        !$omp target enter data map(always, to: ngrid)
     END SUBROUTINE init_grids
 
     SUBROUTINE get_dims(kk, jj, ii, igrid)

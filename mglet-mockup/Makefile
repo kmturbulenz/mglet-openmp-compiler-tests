@@ -33,7 +33,7 @@ llvm:
 
 cray:
 	$(MKDIR_CMD)
-	ftn -h omp -O2 $(FFLAGS) -J $(BUILD_DIR) $(SRC) -o $(BUILD_DIR)/$(TARGET)
+	ftn -D_INDEX_ -h omp -O2 $(FFLAGS) -J $(BUILD_DIR) $(SRC) -o $(BUILD_DIR)/$(TARGET)
 
 clean:
 	rm -rf ./$(BUILD_DIR)

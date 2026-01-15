@@ -32,11 +32,11 @@ CONTAINS
         IF (LEN_TRIM(name) > nchar_name) CALL EXIT(1)
         this%name = name
 
-        ALLOCATE(this%ptr(ngrids), source=0)
-        ALLOCATE(this%len(ngrids), source=0)
+        ALLOCATE(this%ptr(ngrid), source=0)
+        ALLOCATE(this%len(ngrid), source=0)
 
         this%idim = 0
-        DO igrid = 1, ngrids
+        DO igrid = 1, ngrid
             CALL get_dims(kk, jj, ii, igrid)
             this%len(igrid) = kk * jj * ii  
             this%ptr(igrid) = this%idim + 1

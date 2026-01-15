@@ -1,5 +1,8 @@
 ### mglet-mockup
 
-Combines functionality of all previous test cases into one larger example. See the top-level README file for more information.
+Combines the functionality that is verified in the other test cases into a larger example
+closely mirroring MGLET's architecture and programming paradigms.
 
-Use case: step-by-step implementation of core functionality while using OpenMP offloading. Components are as close as possible/necessary to prove MGLET can run using OpenMP offloading.
+Compilation options:
+- `-D_INDEX_`: uses indexing approach in compute loop instead of explicitly constructing pointer
+- `-D_NO_CUSTOM_DEFAULT_MAPPER_`: avoids the definition of default custom mappers

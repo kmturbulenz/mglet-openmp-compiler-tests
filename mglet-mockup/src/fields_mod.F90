@@ -5,10 +5,11 @@ MODULE fields_mod
     IMPLICIT NONE
     PRIVATE
 
+#ifndef _NO_CUSTOM_DEFAULT_MAPPER_
     ! Define mapper here since we only map the whole structure in fields_mod at the moment
-    ! (LLVM) Mappers are only visible in the module they are defined in (is reported)
     ! (Intel) Not clear yet, but removing the mapper here crashes the whole system
     !$omp declare mapper(field_t :: f) map(f%arr, f%len, f%ptr)
+#endif
 
     INTEGER, PARAMETER :: nfields_max = 1000
     INTEGER :: nfields = 0

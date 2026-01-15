@@ -8,6 +8,7 @@ PROGRAM main
     IMPLICIT NONE
 
     REAL, ALLOCATABLE, TARGET :: expected_result(:)
+    INTEGER :: i, ncells
     TYPE(field_t), POINTER :: field, field_b
 
     CALL init_grids()
@@ -26,10 +27,13 @@ PROGRAM main
 
     CALL get_field(field_b, "B")
     field_b%arr = 2.0
+    ncells = field_b%idim
     !$omp target update to(field_b%arr)
-    !$omp target
-    field_b%arr = 1.0
-    !$omp end target
+    !$omp target teams loop
+    DO i = 1, ncells
+        field_b%arr(i) = 1.0
+    END DO
+    !$omp end target teams loop
 
 
     !$omp target update from(field_b%arr)
@@ -44,7 +48,7 @@ CONTAINS
         INTEGER :: i, ip3, kk, jj, ii
 
         ip3 = 1
-        DO i = 1, ngrids
+        DO i = 1, ngrid
             CALL get_dims(kk, jj, ii, i)
             CALL inner(kk, jj, ii, expected_result(ip3), REAL(i))
             ip3 = ip3 + ii * jj * kk
