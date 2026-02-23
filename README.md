@@ -35,7 +35,7 @@ Follow these steps to compile and run the testcases with the provided Makefiles:
 
 1. Setup relevant compiler toolchain
 2. `cd` into any testcase
-3. Use `FFLAGS=<...> make <intel;nvidia;gnu;llvm;cray>` to compile a testcase. The options `intel`, `gnu` and `llvm` requires adding the OpenMP offloading target platform in `FFLAGS`. Available options are listed in the table [Compiler Flags](#compiler-flags). OpenMP is enabled in the Makefile by default. You can also use `FFLAGS` to append other flags
+3. Use `FFLAGS=<...> make <intel;amd;nvidia;gnu;llvm;cray>` to compile a testcase. The options `intel`, `amd`, `gnu` and `llvm` require an OpenMP offloading target platform in `FFLAGS`. Available options are listed in the table [Compiler Flags](#compiler-flags). OpenMP is enabled in the Makefile by default. You can also use `FFLAGS` to append other flags
 4. `make run` to run the executable with mandatory OpenMP offloading
 
 ## Feature matrix
@@ -46,6 +46,7 @@ We obtained the data shown in the feature matrix below using the following compi
 |---|---|---|
 | Intel oneAPI | ifx (IFX) 2025.3.0 20251010 | Intel Data Center GPU Max 1550 |
 | NVIDIA HPCSDK | nvfortran 25.11-0 64-bit target on x86-64 Linux -tp znver5 | NVIDIA GeForce RTX 5070 Ti |
+| ROCm | *tbd (only for >ROCm 7.0)*  | *tbd* |
 | GNU | GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0 | NVIDIA GeForce RTX 5070 Ti |
 | LLVM | flang version 22.0.0git (git@github.com:llvm/llvm-project.git a8058c177d0e45993108936cfca532d3dab037fc) | NVIDIA GeForce RTX 5070 Ti |
 | Cray HLRS | Cray Fortran : Version 19.0.0 (20250207225012_cc4d36e4ff3377d45f0e6e892b5dacd82009a0ca) | AMD Instinct MI300A |
@@ -130,7 +131,7 @@ END SUBROUTINE inner
 # OpenMP offloading notes
 ## Vendor compatability
 The following table shows the OpenMP offloading compatibility between vendors and compilers.
-| GPU Vendor | Intel oneAPI | NVIDIA HPCSDK | AOCC + [amdflang](https://github.com/amd/InfinityHub-CI/blob/main/fortran/README.md) | GNU | LLVM | Cray HLRS |
+| GPU Vendor | Intel oneAPI | NVIDIA HPCSDK | ROCm | GNU | LLVM | Cray HLRS |
 |---|---|---|---|---|---|---|
 | Intel | &check; | &cross; | &cross; | &cross; | &cross; | &cross; |
 | NVIDIA | &cross; | &check; | &cross; | &check; | &check; | &cross; |
@@ -138,14 +139,14 @@ The following table shows the OpenMP offloading compatibility between vendors an
 
 ## Compiler flags
 The following table shows the flags for compilation in order to instruct the compiler to generate target code.
-| Compiler | OpenMP Flag | Target Flag | Target Platforms |
-|---|---|---|---|
-| Intel oneAPI | `-fiopenmp` | `-fopenmp-targets=...` | `OFF`, `spir64`, `spir64_x86_64`, `spir64_gen` |
+| Compiler | OpenMP Flag | Target Flag | Target Platforms | Comment |
+|---|---|---|---|---|
+| Intel oneAPI | `-fiopenmp` | `-fopenmp-targets=...` | `OFF`, `spir64`, `spir64_x86_64`, `spir64_gen` | - |
+| NVIDIA HPCSDK | `-mp` | `-mp=gpu` (only NVIDIA GPUs, optionally specify architecture with additional flag `-gpu=cc120`) | - | `-gpu=mem:unified` to activate unified shared memory, `requires unified_shared_memory` is accepted but ignored |
+| ROCm | `-fopenmp` | `--offload-arch=...` | e.g. `MI250` or `gfx90a` | `-fopenmp-force-usm` available |
 | GNU | `-fopenmp` | `-foffload=...` | `nvptx-none`, `amdgcn-amdhsa`, `default`, `disable` |
-| NVIDIA HPCSDK | `-mp` | `-mp=gpu` (only NVIDIA GPUs, specify architecture with additional flag `-gpu=cc120`) | - |
-| AOCC + [amdflang](https://github.com/amd/InfinityHub-CI/blob/main/fortran/README.md) | `-fopenmp` | e.g. `--offload-arch=...` (only AMD GPUs, specify architecture with e.g. `MI250` or `gfx90a`) | - |
-| LLVM | `-fopenmp` | `-fopenmp-targets` | `x86_64-unknown-linux-gnu`, `nvptx64-nvidia-cuda`, `amdgcn-amd-amdhsa`, (`aarch64-unknown-linux-gnu`, `powerpc64le-ibm-linux-gnu`) | 
-| Cray HLRS | `-fopenmp` for cc and CC, `-h omp` for ftn | activated by default | - | 
+| LLVM | `-fopenmp` | `-fopenmp-targets` | e.g. `x86_64-unknown-linux-gnu`, `nvptx64-nvidia-cuda`, `amdgcn-amd-amdhsa`, `aarch64-unknown-linux-gnu` | 
+| Cray HLRS | `-fopenmp` for cc and CC, `-h omp` for ftn | activated by default | - | `-fopenmp-force-usm` available |
 
 ## Environment variables
 The following table shows environment flags that are useful for debugging OpenMP offloading issues during runtime.
@@ -154,6 +155,6 @@ The following table shows environment flags that are useful for debugging OpenMP
 | Intel oneAPI | `LIBOMPTARGET_DEBUG=<0;1;2>`: OpenMP runtime debug information runtime<br>`LIBOMPTARGET_INFO=<0;1;2;4;8;32>`: Basic Offloading information runtime<br>`LIBOMPTARGET_PLUGIN_PROFILE=<F;T;T,usec>`: Enables display of performance data | [Intel docs](https://www.intel.com/content/www/us/en/docs/oneapi/programming-guide/2023-1/oneapi-debug-tools.html) |
 | GNU | `GOMP_DEBUG=<0;1>`: OpenMP runtime debug information | [GNU docs](https://gcc.gnu.org/onlinedocs/libgomp/Environment-Variables.html) |
 | NVIDIA HPCSDK | `NVCOMPILER_ACC_NOTIFY=<0;1;2;4;8;16>`: Runtime debug information<br>`NVCOMPILER_OMP_DISABLE_WARNINGS=<false;true>`: Generate warnings during runtime | [HPCSDK docs](https://docs.nvidia.com/hpc-sdk/compilers/hpc-compilers-user-guide/) |
-| AOCC + [amdflang](https://github.com/amd/InfinityHub-CI/blob/main/fortran/README.md) | `LIBOMPTARGET_DEBUG=<0;1>`: OpenMP runtime debug information<br>`LIBOMPTARGET_INFO=<0;1;-1>`: Device information<br>`LIBOMPTARGET_KERNEL_TRACE=<0;1;2>`: Kernel information | [AMD docs](https://rocm.docs.amd.com/en/docs-6.1.0/about/compatibility/openmp.html) |
+| ROCm | `LIBOMPTARGET_DEBUG=<0;1>`: OpenMP runtime debug information<br>`LIBOMPTARGET_INFO=<0;1;-1>`: Device information<br>`LIBOMPTARGET_KERNEL_TRACE=<0;1;2>`: Kernel information | [AMD docs](https://rocm.docs.amd.com/en/docs-6.1.0/about/compatibility/openmp.html) |
 | LLVM | `LIBOMPTARGET_DEBUG=<0;1>`: OpenMP runtime debug information (only if LLVM is compiled with `-DOMPTARGET_DEBUG`)<br>`LIBOMPTARGET_INFO=<0;1;2;4;8;16;32>`: Offloading information<br>`LIBOMPTARGET_PROFILE=<filename>`: Generate time profile output (only if LLVM is compiled with `OPENMP_ENABLE_LIBOMP_PROFILING=ON`)<br>`LIBOMPTARGET_PROFILE_GRANULARITY=<us>`: Set time profile granularity in us | [LLVM docs](https://openmp.llvm.org/design/Runtimes.html) |
 | Cray HLRS | `CRAY_ACC_DEBUG=<0;1;2;3>`: OpenMP runtime debug information | [HLRS docs](https://kb.hlrs.de/platforms/index.php/Programming_Models), [HPE docs](https://cpe.ext.hpe.com/docs/24.03/guides/CCE/HPE_Cray_Fortran_Reference_Manual_17.0.1_S-3901.html) | 
