@@ -15,7 +15,9 @@ intel:
 	ifx -O2 -fiopenmp $(FFLAGS) -module $(BUILD_DIR) $(SRC) -o $(BUILD_DIR)/$(TARGET)
 
 amd:
-	@echo "AMD test is not setup"
+	$(MKDIR_CMD)
+	$(REQ_FFLAGS)
+	amdflang -O2 -fopenmp  $(FFLAGS) -module-dir $(BUILD_DIR) -I $(BUILD_DIR) $(SRC) -o $(BUILD_DIR)/$(TARGET)
 
 nvidia:
 	$(MKDIR_CMD)
