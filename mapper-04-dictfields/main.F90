@@ -1,34 +1,65 @@
-MODULE realfield_mod
+MODULE const_mod
     IMPLICIT NONE
+    PRIVATE
+
+    INTEGER, PARAMETER :: num_elements = 1024
+
+    PUBLIC :: num_elements
+END MODULE const_mod
+
+MODULE realfield_mod
+    USE const_mod
+    IMPLICIT NONE
+    PRIVATE
 
     TYPE field_t
-        REAL, ALLOCATABLE :: buf(:)
+        REAL, ALLOCATABLE :: arr(:)
+        REAL, ALLOCATABLE :: buffers(:)
         INTEGER :: id
     CONTAINS
         PROCEDURE :: init
         PROCEDURE :: finish
     END TYPE field_t
-    ! (Intel) If this mapper is not explicitly defined, then we get a runtime error
-    !$omp declare mapper(field_t :: f) map(f%buf)
 
-    INTEGER, PARAMETER :: n = 1024  
+    PUBLIC :: field_t
 CONTAINS
-    SUBROUTINE init(this, id)
+    SUBROUTINE init(this, id, buffers)
         CLASS(field_t), INTENT(INOUT) :: this
         INTEGER, INTENT(IN) :: id
+        LOGICAL, INTENT(IN) :: buffers
         
         this%id = id
-        ALLOCATE(this%buf(n), source=1.0)
+        ALLOCATE(this%arr(num_elements), source=1.0)
+        IF (buffers) ALLOCATE(this%buffers(num_elements), source=2.0)
     END SUBROUTINE init
 
     SUBROUTINE finish(this)
         CLASS(field_t), INTENT(INOUT) :: this
 
-        DEALLOCATE(this%buf)
+        DEALLOCATE(this%arr)
+        IF (ALLOCATED(this%buffers)) DEALLOCATE(this%buffers)
     END SUBROUTINE
 END MODULE realfield_mod
 
+MODULE mapper_mod
+    USE realfield_mod, ONLY: field_t
+
+    PRIVATE :: field_t
+
+    ! (Intel) Using custom mappers for derived types POINTER types can cause
+    !         crashes. It appears that in some cases the custom mapper is not
+    !         properly recognized such that allocations are not mapped. The
+    !         bug can be avoided if the custom mapper is not defined in the
+    !         module of the derived type itself but more closely to the region
+    !         where it is used. For this reason, this mapper_mod is introduced
+    !         that can be USE'd whenever a custom mapper is required (and any
+    !         target regions accessing member of POINTER types is started).
+    !$omp declare mapper(arr: field_t :: t) map(t%arr)
+    !$omp declare mapper(arrbufs: field_t :: t) map(t%arr, t%buffers)
+END MODULE mapper_mod
+
 MODULE fields_mod
+    USE mapper_mod
     USE realfield_mod
     IMPLICIT NONE
 
@@ -39,19 +70,28 @@ CONTAINS
     SUBROUTINE finish_fields()
         INTEGER :: i
         DO i = 1, nfields
+            IF (ALLOCATED(fields(i)%buffers)) THEN
+                !$omp target exit data map(mapper(arrbufs), release: fields(i))
+            ELSE
+                !$omp target exit data map(mapper(arr), release: fields(i))
+            END IF
             CALL fields(i)%finish()
-            !$omp target exit data map(release: fields(i))
         END DO
     END SUBROUTINE finish_fields
 
-    SUBROUTINE set_field(id)
+    SUBROUTINE set_field(id, buffers)
         INTEGER, INTENT(IN) :: id
+        LOGICAL, INTENT(IN) :: buffers
 
         IF (nfields + 1 > nfields_max) RETURN
         nfields = nfields + 1
-        CALL fields(nfields)%init(id)
+        CALL fields(nfields)%init(id, buffers)
 
-        !$omp target enter data map(to: fields(nfields)) 
+        IF (buffers) THEN
+            !$omp target enter data map(mapper(arrbufs), to: fields(nfields))
+        ELSE
+            !$omp target enter data map(mapper(arr), to: fields(nfields))
+        END IF
     END SUBROUTINE set_field
 
     SUBROUTINE get_field(field, id)
@@ -68,74 +108,87 @@ CONTAINS
     END SUBROUTINE
 END MODULE fields_mod
 
-PROGRAM dict_fields
+PROGRAM dictfields
+    USE const_mod
     USE fields_mod
     IMPLICIT NONE
 
     REAL, ALLOCATABLE :: expected_result(:)
     TYPE(field_t), POINTER :: field_1, field_2
-    REAL, PARAMETER :: val1 = 42.0, val2 = 10.0, val3 = -1.0, val4 = -2.0
-    LOGICAL :: equal1, equal2
+    REAL, PARAMETER :: val1 = 42.0, val2 = 10.0, val3 = -1.0
+    LOGICAL :: equal1, equal2, equal3
     equal1 = .FALSE.
     equal2 = .FALSE.
-    ALLOCATE(expected_result(n))
+    equal3 = .FALSE.
+    ALLOCATE(expected_result(num_elements))
 
     ! Allocate fields
-    CALL set_field(1)
-    CALL set_field(2)
-
-    ! Write to fields on device
-    CALL modify_field(1, val1, .TRUE.)
-    CALL modify_field(2, val2, .TRUE.)
-
-    ! Copy values back to host and compare
+    CALL set_field(1, .FALSE.) ! (host) arr=1.0,         (target) arr=1.0
+    CALL set_field(2, .TRUE.)  ! (host) arr=1.0, buf=2.0 (target) arr=1.0, buf=2.0
     CALL get_field(field_1, 1)
     CALL get_field(field_2, 2)
 
-    ! (LLVM) Mappers are not supported here yet
-    ! (INTEL) Using mappers here crashes the compiler
-    !$omp target update from(field_1%buf, field_2%buf)
+    ! Write to fields on device
+    CALL set_field_values(1, val1, .TRUE.) ! (host) arr=1.0           (target) arr=42.0
+    CALL set_field_values(2, val2, .TRUE.) ! (host) arr=1.0, buf=2.0  (target) arr=42.0, buf=2.0
+
+    ! Check values on target
+    !$omp target map(alloc: expected_result) map(from: equal1, equal2, equal3)
     expected_result = val1
-    CALL compare(field_1%buf, expected_result)
+    CALL compare_on_device(field_1%arr, expected_result, equal1)
     expected_result = val2
-    CALL compare(field_2%buf, expected_result)
-
-    ! Write to field on host
-    CALL modify_field(1, val3, .FALSE.)
-    CALL modify_field(2, val4, .FALSE.)
-    ! Copy values back to device (don't copy field_1)
-    !$omp target update to(field_2%buf)
-
-    !$omp target map(alloc: expected_result) map(from: equal1, equal2)
-    ! field_1 should still be on val1 since we did not copy it back to the device
-    expected_result = val1
-    CALL compare_on_device(field_1%buf, expected_result, equal1)
-    expected_result = val4
-    CALL compare_on_device(field_2%buf, expected_result, equal2)
+    CALL compare_on_device(field_2%arr, expected_result, equal2)
+    expected_result = 2.0
+    CALL compare_on_device(field_2%buffers, expected_result, equal3)
     !$omp end target
-
     CALL print_test_result(equal1)
     CALL print_test_result(equal2)
+    CALL print_test_result(equal3)
+
+    ! Check values after copying back
+    !$omp target update from(field_1%arr, field_2%arr)
+    ! field_1: (host) arr=42.0           (target) arr=42.0
+    ! field_2: (host) arr=42.0, buf=2.0  (target) arr=42.0, buf=2.0
+    expected_result = val1
+    CALL compare(field_1%arr, expected_result)
+    expected_result = val2
+    CALL compare(field_2%arr, expected_result)
+    expected_result = 2.0
+    CALL compare(field_2%buffers, expected_result)
+
+    field_2%buffers = val3 ! (host) arr=42.0, buf=-1.0  (target) arr=42.0, buf=2.0
+    expected_result = val3
+    CALL compare(field_2%buffers, expected_result)
+
+    !$omp target update to(field_2%buffers) ! (host) arr=42.0, buf=-1.0  (target) arr=42.0, buf=-1.0
+    !$omp target map(alloc: expected_result) map(from: equal1)
+    expected_result = val3
+    CALL compare_on_device(field_2%buffers, expected_result, equal1)
+    !$omp end target
+    CALL print_test_result(equal1)
 
     CALL finish_fields()
     DEALLOCATE(expected_result)
 CONTAINS
-    SUBROUTINE modify_field(id, val, on_device)
-        INTEGER, INTENT(IN) :: id
+    SUBROUTINE set_field_values(field_id, val, on_device)
+        INTEGER, INTENT(IN) :: field_id
         REAL, INTENT(IN) :: val
         LOGICAL, INTENT(IN) :: on_device
 
-        TYPE(field_t), POINTER :: ptr
-        CALL get_field(ptr, id)
+        INTEGER :: i
+        TYPE(field_t), POINTER :: field
+        CALL get_field(field, field_id)
 
         IF (on_device) THEN
-            !$omp target 
-            ptr%buf(:) = val
-            !$omp end target
+            !$omp target teams loop
+            DO i = 1, num_elements
+                field%arr(i) = val
+            END DO
+            !$omp end target teams loop
         ELSE
-            ptr%buf(:) = val
+            field%arr(:) = val
         END IF
-    END SUBROUTINE modify_field
+    END SUBROUTINE set_field_values
 
     SUBROUTINE compare(result, expected)
         REAL, INTENT(in), DIMENSION(:) :: result, expected
@@ -169,4 +222,4 @@ CONTAINS
             PRINT *, "Test FAILED!"
         END IF
     END SUBROUTINE print_test_result
-END PROGRAM dict_fields
+END PROGRAM dictfields
