@@ -54,6 +54,9 @@ MODULE mapper_mod
     !         where it is used. For this reason, this mapper_mod is introduced
     !         that can be USE'd whenever a custom mapper is required (and any
     !         target regions accessing member of POINTER types is started).
+    ! (LLVM)  Custom mappers are not exposed outside of PRIVATE modules.
+    !         Since the field_t type is stored in a PRIVATE module, make its
+    !         mapper available here.
     !$omp declare mapper(arr: field_t :: t) map(t%arr)
     !$omp declare mapper(arrbufs: field_t :: t) map(t%arr, t%buffers)
 END MODULE mapper_mod
@@ -62,10 +65,13 @@ MODULE fields_mod
     USE mapper_mod
     USE realfield_mod
     IMPLICIT NONE
+    PRIVATE
 
     INTEGER, PARAMETER :: nfields_max = 1000
     INTEGER :: nfields = 0
     TYPE(field_t), TARGET :: fields(nfields_max)
+
+    PUBLIC :: finish_fields, set_field, get_field
 CONTAINS
     SUBROUTINE finish_fields()
         INTEGER :: i
@@ -111,6 +117,8 @@ END MODULE fields_mod
 PROGRAM dictfields
     USE const_mod
     USE fields_mod
+    USE mapper_mod
+    USE realfield_mod
     IMPLICIT NONE
 
     REAL, ALLOCATABLE :: expected_result(:)
@@ -129,8 +137,8 @@ PROGRAM dictfields
     CALL get_field(field_2, 2)
 
     ! Write to fields on device
-    CALL set_field_values(1, val1, .TRUE.) ! (host) arr=1.0           (target) arr=42.0
-    CALL set_field_values(2, val2, .TRUE.) ! (host) arr=1.0, buf=2.0  (target) arr=42.0, buf=2.0
+    CALL set_field_values(1, val1) ! (host) arr=1.0           (target) arr=42.0
+    CALL set_field_values(2, val2) ! (host) arr=1.0, buf=2.0  (target) arr=42.0, buf=2.0
 
     ! Check values on target
     !$omp target map(alloc: expected_result) map(from: equal1, equal2, equal3)
@@ -170,24 +178,19 @@ PROGRAM dictfields
     CALL finish_fields()
     DEALLOCATE(expected_result)
 CONTAINS
-    SUBROUTINE set_field_values(field_id, val, on_device)
+    SUBROUTINE set_field_values(field_id, val)
         INTEGER, INTENT(IN) :: field_id
         REAL, INTENT(IN) :: val
-        LOGICAL, INTENT(IN) :: on_device
 
         INTEGER :: i
         TYPE(field_t), POINTER :: field
         CALL get_field(field, field_id)
 
-        IF (on_device) THEN
-            !$omp target teams loop
-            DO i = 1, num_elements
-                field%arr(i) = val
-            END DO
-            !$omp end target teams loop
-        ELSE
-            field%arr(:) = val
-        END IF
+        !$omp target teams loop map(mapper(arr), tofrom: field)
+        DO i = 1, num_elements
+            field%arr(i) = val
+        END DO
+        !$omp end target teams loop
     END SUBROUTINE set_field_values
 
     SUBROUTINE compare(result, expected)
