@@ -1,5 +1,6 @@
 MODULE field_mod
     IMPLICIT NONE
+    PRIVATE
 
     TYPE :: field_t
         REAL, ALLOCATABLE :: buf(:)
@@ -7,13 +8,18 @@ MODULE field_mod
     END TYPE field_t
     ! Scalar value must be mapped explicitly
     !$omp declare mapper(custom: field_t :: t) map(tofrom: t%buf, t%val)
+
+    PUBLIC :: field_t
 END MODULE field_mod
 
 MODULE test_mod
     USE field_mod
     IMPLICIT NONE
+    PRIVATE
+
+    PUBLIC :: run_test
 CONTAINS
-    SUBROUTINE test_mapper()
+    SUBROUTINE run_test()
         INTEGER, PARAMETER :: n = 3
         REAL, PARAMETER :: val = 42.0
         REAL :: expected_buf(n), result_buf(n)
@@ -24,10 +30,13 @@ CONTAINS
         field%buf = val
         field%val = val
 
-        ! (INTEL) Be careful with mapping scalars. There is a bug that changes the mapping behavior
-        ! of scalars when a custom mapper is used in another mapping. Thus we use a one-sized array.
-        ! (Cray) The order of mapping matters here. If the mapper(custom) is put first
-        ! then the program will core dump with a memory access fault
+        ! (Intel) Be careful with mapping scalars. There is a bug that changes 
+        !         the mapping behavior of scalars when a custom mapper is used 
+        !         in another mapping. To avoid this we just use a one 
+        !         dimensional array instead
+        ! (Cray)[likely fixed in CCE 21] The order of mapping matters here. 
+        !        If the mapper(custom) is listed first in the map clause, then 
+        !        the program will crash with a memory access fault
         !$omp target map(from: result_buf) map(mapper(custom), tofrom: field)
         result_buf(:) = field%buf(:)
         result_val(:) = field%val
@@ -39,7 +48,7 @@ CONTAINS
         CALL compare(result_val, expected_val)
 
         DEALLOCATE(field%buf)
-    END SUBROUTINE test_mapper
+    END SUBROUTINE run_test
 
     SUBROUTINE compare(result, expected)
         REAL, INTENT(in), DIMENSION(:) :: result, expected
@@ -66,5 +75,5 @@ PROGRAM reproducer
     USE test_mod
     IMPLICIT NONE
 
-    CALL test_mapper()
+    CALL run_test()
 END PROGRAM reproducer
