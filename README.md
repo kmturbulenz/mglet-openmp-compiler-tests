@@ -47,7 +47,7 @@ We obtained the data shown in the feature matrix below using the following compi
 | Intel oneAPI | ifx (IFX) 2025.3.0 20251010 | Intel Data Center GPU Max 1550 |
 | NVIDIA HPCSDK | nvfortran 25.11-0 64-bit target on x86-64 Linux -tp znver5 | NVIDIA GeForce RTX 5070 Ti |
 | GNU | GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0 | NVIDIA GeForce RTX 5070 Ti |
-| LLVM | flang version 22.0.0git (git@github.com:llvm/llvm-project.git a8058c177d0e45993108936cfca532d3dab037fc) | NVIDIA GeForce RTX 5070 Ti |
+| LLVM | flang version 23.0.0git (git@github.com:llvm/llvm-project.git dd83ead9a51ff39fbde7e12fbf70a49a8353dbd2) | NVIDIA GeForce RTX 5070 Ti |
 | Cray HLRS | Cray Fortran : Version 19.0.0 (20250207225012_cc4d36e4ff3377d45f0e6e892b5dacd82009a0ca) | AMD Instinct MI300A |
 
 | Case | Intel oneAPI | NVIDIA HPCSDK | GNU | LLVM | Cray HLRS |
@@ -58,7 +58,7 @@ We obtained the data shown in the feature matrix below using the following compi
 | mapper-01-inter-module | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | &check; |
 | mapper-02-basetype | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | &check; |
 | mapper-03-variants | &check; | Custom mappers unsupported | Custom mappers unsupported | Mappers unsupported for target update construct  | Test invalid (USM) |
-| mapper-04-dictfields | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | Test invalid (USM) |
+| mapper-04-dictfields | &check; | Custom mappers unsupported | Custom mappers unsupported | Runtime crash | Test invalid (USM) |
 | mapper-05-alloc-field | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | Test invalid (USM) |
 | mapper-06-nested | &check; | Custom mappers unsupported | Custom mappers unsupported | Runtime segfault | Test invalid (USM) |
 | module-01-buf | &check; | &check; | &check; | &check; | &check; |
