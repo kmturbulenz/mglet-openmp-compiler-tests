@@ -1,5 +1,5 @@
 ### mapper-01-inter-module
 
-Tests if a custom mapper defined in module A is recognized in module B.
+Tests if a derived type defined in module A that is PRIVATE can be used in module B in a custom mapper via an intermediate mapper module that is PUBLIC by default.
 
-Use case: field structures and related custom mappers defined in their own module should be useable in mappings in other modules.
+Use case: fields are defined in their own PRIVATE modules. To make their mappers available in many other modules, an intermediate mapper module is mandatory to work on all compilers.

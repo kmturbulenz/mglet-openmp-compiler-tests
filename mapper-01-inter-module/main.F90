@@ -6,14 +6,23 @@ MODULE field_mod
         REAL, ALLOCATABLE :: buf(:)
         REAL :: val
     END TYPE field_t
-    ! Scalar value must be mapped explicitly
-    !$omp declare mapper(custom: field_t :: t) map(tofrom: t%buf, t%val)
 
     PUBLIC :: field_t
 END MODULE field_mod
 
+MODULE mapper_mod
+    USE field_mod, ONLY: field_t
+    IMPLICIT NONE
+
+    PRIVATE :: field_t
+
+    ! Intermediate mapper module that is PUBLIC by default
+    !$omp declare mapper(custom: field_t :: t) map(tofrom: t%buf, t%val)
+END MODULE mapper_mod
+
 MODULE test_mod
     USE field_mod
+    USE mapper_mod
     IMPLICIT NONE
     PRIVATE
 
