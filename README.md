@@ -48,25 +48,25 @@ We obtained the data shown in the feature matrix below using the following compi
 | NVIDIA HPCSDK | nvfortran 25.11-0 64-bit target on x86-64 Linux -tp znver5 | NVIDIA GeForce RTX 5070 Ti |
 | ROCm | *tbd (only for >ROCm 7.0)*  | *tbd* |
 | GNU | GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0 | NVIDIA GeForce RTX 5070 Ti |
-| LLVM | flang version 23.0.0git (git@github.com:llvm/llvm-project.git dd83ead9a51ff39fbde7e12fbf70a49a8353dbd2) | NVIDIA GeForce RTX 5070 Ti |
+| LLVM | flang version 23.0.0git (git@github.com:llvm/llvm-project.git b86f24fd0ed47238ddfa1292bbd89d1ec10d774c) | NVIDIA GeForce RTX 5070 Ti |
 | Cray HLRS | Cray Fortran : Version 19.0.0 (20250207225012_cc4d36e4ff3377d45f0e6e892b5dacd82009a0ca) | AMD Instinct MI300A |
 
 | Case | Intel oneAPI | NVIDIA HPCSDK | GNU | LLVM | Cray HLRS |
 |---|---|---|---|---|---|
 | builtin-01-math | &check; | &check; | &check; | Compiler crash | &check; |
-| builtin-02-print | Prints "*" for non-string literals | &check; | Linking error | Compiler crash | No combination of string literals and numbers allowed |
-| builtin-03-ieee | &check; | &check; | &check; | Compiler error: REAL(KIND=10) is not an enabled type for this target | &check; |
+| builtin-02-print | Prints "*" for non-string literals | &check; | Linking error | &check; | No combination of string literals and numbers allowed |
+| builtin-03-ieee | &check; | &check; | &check; | &check; | &check; |
 | mapper-01-inter-module | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | &check; |
 | mapper-02-basetype | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | &check; |
-| mapper-03-variants | &check; | Custom mappers unsupported | Custom mappers unsupported | Mappers unsupported for target update construct  | mapper(default) does not compile |
-| mapper-04-dictfields | &check; | Custom mappers unsupported | Custom mappers unsupported | Runtime crash | Map clause list objects do not match type |
+| mapper-03-variants | &check; | Custom mappers unsupported | Custom mappers unsupported | &check;  | mapper(default) does not compile |
+| mapper-04-dictfields | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | Map clause list objects do not match type |
 | mapper-05-alloc-field | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | *Test invalid (USM)* |
-| mapper-06-nested | &check; | Custom mappers unsupported | Custom mappers unsupported | Runtime segfault | *Test invalid (USM)* |
+| mapper-06-nested | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | *Test invalid (USM)* |
 | module-01-buf | &check; | &check; | &check; | &check; | &check; |
 | module-02-ptr-bigbuf | &check; | &check; | &check; | &check; | &check; |
 | type-01-procedures | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | &check; |
 | type-02-generics | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | &check; |
-| type-03-basefunc | Runtime Linking error | Call to type-bound procedures not allowed on device | Runtime crash (llegal memory access) | &check; | Linker error |
+| type-03-basefunc | Runtime Linking error | Call to type-bound procedures not allowed on device | &check; | &check; | Linker error |
 | loop-01-index | &check; | Compiler crash | &check; | &check; | &check; |
 | loop-02-ptr | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | Only with non-class subroutine and inlining disabled |
 | loop-03-pass-dims | &check; | Fails due to using member variable arr | &check; | &check; | &check; |
