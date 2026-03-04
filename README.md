@@ -54,7 +54,7 @@ We obtained the data shown in the feature matrix below using the following compi
 | Case | Intel oneAPI | NVIDIA HPCSDK | GNU | LLVM | Cray HLRS |
 |---|---|---|---|---|---|
 | builtin-01-math | &check; | &check; | &check; | Compiler crash | &check; |
-| builtin-02-print | Prints "*" for non-string literals | &check; | Linking error | &check; | No combination of string literals and numbers allowed |
+| builtin-02-print | Prints "*" for non-string literals | &check; | Linking error | &check; | No char arrays and combinations are allowed |
 | builtin-03-ieee | &check; | &check; | &check; | &check; | &check; |
 | mapper-01-inter-module | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | &check; |
 | mapper-02-basetype | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | &check; |
