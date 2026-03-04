@@ -1,11 +1,11 @@
 ### builtin-02-print
 
-Tests if print is supported in target regions.
+Tests if Fortran's PRINT is supported in target regions.
 
-Contains cases for printing:
+Contains cases for:
 - string literal
-- non-literal string
-- `REAL` and `INTEGER` from a variable.
-- string literal, `REAL` and `INTEGER` in a single print statement
+- `CHARACTER` array
+- `REAL` and `INTEGER` variables.
+- combination of all above in a single print statement
 
-Use case: debugging GPU kernels
+Use case: debugging GPU kernels.
