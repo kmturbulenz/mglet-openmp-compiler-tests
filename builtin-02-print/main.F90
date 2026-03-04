@@ -1,22 +1,35 @@
 PROGRAM reproducer
     IMPLICIT NONE
 
-    CHARACTER(50) :: msg
+    CHARACTER(10) :: msg
     INTEGER :: num
     REAL :: val
 
+    PRINT*, "Attempting to print string literal:"
     !$omp target
-        PRINT *, "String literal printed from target!"
+    PRINT*, "string literal"
+    !$omp end target
 
-        msg = "String in variable printed from target"
-        PRINT *, msg
+    PRINT*, "Attempting to print char array:"
+    msg = "char array"
+    !$omp target
+    PRINT*, msg 
+    !$omp end target
 
-        num = 42
-        PRINT *, num
+    PRINT*, "Attempting to print integer:"
+    !$omp target
+    num = 42
+    PRINT*, num
+    !$omp end target
 
-        val = 2.0
-        PRINT *, val
+    PRINT*, "Attempting to print real:"
+    !$omp target
+    val = 10.0
+    PRINT*, val
+    !$omp end target
 
-        PRINT *, "Combined:", num, val
+    PRINT*, "Attempting to print combination of all:" 
+    !$omp target
+    PRINT*, "string literal", msg, num, val
     !$omp end target
 END PROGRAM reproducer
