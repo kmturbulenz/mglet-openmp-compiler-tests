@@ -48,7 +48,7 @@ CONTAINS
 
         ALLOCATE(field%arr(n), source=initial)
 
-        !$omp target teams loop map(from: values) private(val)
+        !$omp target teams loop map(tofrom: field) map(from: values) private(val)
         DO i = 1, n
             CALL field%get(val, i)
             values(i) = val

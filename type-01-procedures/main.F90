@@ -27,7 +27,7 @@ PROGRAM reproducer
 
     ALLOCATE(field%buf(n), source=initial_val)
 
-    !$omp target
+    !$omp target map(tofrom: field)
         ! Calling a procedure from a mapped derived type requires declaring with target
         CALL field%set_vals(val)
     !$omp end target

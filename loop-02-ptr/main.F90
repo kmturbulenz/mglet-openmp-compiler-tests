@@ -61,7 +61,7 @@ CONTAINS
 
         ALLOCATE(field%arr(ncells), source=1.0)
 
-        !$omp target teams loop bind(teams) private(arr_ptr)
+        !$omp target teams loop bind(teams) private(arr_ptr) map(tofrom: field)
         DO igrid = 1, ngrids
 #ifdef _PTR_TYP_
             CALL get_ptr_typ(field, arr_ptr, igrid)
