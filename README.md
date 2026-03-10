@@ -110,6 +110,8 @@ SUBROUTINE kernel(ptr)
     !$omp declare target
     REAL, INTENT(INOUT), DIMENSION(cpd, cpd, cpd) :: ptr 
 
+    ! Note: use bind(parallel) for __flang__ when targeting AMD
+    !       bind(thread) is just an inefficient workaround for NVIDIA
     !$omp loop &
 #if defined(__INTEL_COMPILER) || defined(__NVCOMPILER)
     !$omp bind(parallel) &
