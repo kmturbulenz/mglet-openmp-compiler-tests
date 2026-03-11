@@ -60,7 +60,7 @@ The data shown in the feature matrix below has been obtained using the following
 | mapper-01-inter-module | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | &check; |
 | mapper-02-basetype | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | &check; |
 | mapper-03-variants | &check; | Custom mappers unsupported | Custom mappers unsupported | &check;  | mapper(default) does not compile |
-| mapper-04-dictfields | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | Map clause list objects do not match type |
+| mapper-04-dictfields | Compiler crash | Custom mappers unsupported | Custom mappers unsupported | &check; | *Test invalid (USM)* |
 | mapper-05-alloc-field | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | *Test invalid (USM)* |
 | mapper-06-nested | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | *Test invalid (USM)* |
 | module-01-buf | &check; | &check; | &check; | &check; | &check; |

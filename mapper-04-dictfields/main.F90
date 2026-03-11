@@ -2,9 +2,10 @@ MODULE const_mod
     IMPLICIT NONE
     PRIVATE
 
-    INTEGER, PARAMETER :: num_elements = 1024
+    INTEGER, PARAMETER :: ncells = 1024
+    INTEGER, PARAMETER :: nbuf = 128
 
-    PUBLIC :: num_elements
+    PUBLIC :: ncells, nbuf
 END MODULE const_mod
 
 MODULE realfield_mod
@@ -29,8 +30,8 @@ CONTAINS
         LOGICAL, INTENT(IN) :: buffers
         
         this%id = id
-        ALLOCATE(this%arr(num_elements), source=1.0)
-        IF (buffers) ALLOCATE(this%buffers(num_elements), source=2.0)
+        ALLOCATE(this%arr(ncells), source=1.0)
+        IF (buffers) ALLOCATE(this%buffers(nbuf), source=2.0)
     END SUBROUTINE init
 
     SUBROUTINE finish(this)
@@ -57,8 +58,14 @@ MODULE mapper_mod
     ! (LLVM)  Custom mappers are not exposed outside of PRIVATE modules.
     !         Since the field_t type is stored in a PRIVATE module, make its
     !         mapper available here.
-    !$omp declare mapper(arr: field_t :: t) map(t%arr)
-    !$omp declare mapper(arrbufs: field_t :: t) map(t%arr, t%buffers)
+
+    ! (Intel) Overriding the default mapper to map the underlying data of
+    !         allocatables. The downside is that any non-listed variables will
+    !         not be copied to the device.
+    ! (LLVM)  Overriding the default mapper just excludes any non listed members
+    !$omp declare mapper(field_t :: t) map(t%arr, t%buffers)
+    !$omp declare mapper(maparr: field_t :: t) map(t%arr)
+    !$omp declare mapper(mapbuffers: field_t :: t) map(t%buffers)
 END MODULE mapper_mod
 
 MODULE fields_mod
@@ -76,11 +83,7 @@ CONTAINS
     SUBROUTINE finish_fields()
         INTEGER :: i
         DO i = 1, nfields
-            IF (ALLOCATED(fields(i)%buffers)) THEN
-                !$omp target exit data map(mapper(arrbufs), release: fields(i))
-            ELSE
-                !$omp target exit data map(mapper(arr), release: fields(i))
-            END IF
+            !$omp target exit data map(release: fields(i))
             CALL fields(i)%finish()
         END DO
     END SUBROUTINE finish_fields
@@ -92,12 +95,7 @@ CONTAINS
         IF (nfields + 1 > nfields_max) RETURN
         nfields = nfields + 1
         CALL fields(nfields)%init(id, buffers)
-
-        IF (buffers) THEN
-            !$omp target enter data map(mapper(arrbufs), to: fields(nfields))
-        ELSE
-            !$omp target enter data map(mapper(arr), to: fields(nfields))
-        END IF
+        !$omp target enter data map(to: fields(nfields))
     END SUBROUTINE set_field
 
     SUBROUTINE get_field(field, id)
@@ -128,7 +126,7 @@ PROGRAM dictfields
     equal1 = .FALSE.
     equal2 = .FALSE.
     equal3 = .FALSE.
-    ALLOCATE(expected_result(num_elements))
+    ALLOCATE(expected_result(ncells))
 
     ! Allocate fields
     CALL set_field(1, .FALSE.) ! (host) arr=1.0,         (target) arr=1.0
@@ -141,6 +139,7 @@ PROGRAM dictfields
     CALL set_field_values(2, val2) ! (host) arr=1.0, buf=2.0  (target) arr=42.0, buf=2.0
 
     ! Check values on target
+    PRINT*, "Device tests..."
     !$omp target map(alloc: expected_result) map(from: equal1, equal2, equal3)
     expected_result = val1
     CALL compare_on_device(field_1%arr, expected_result, equal1)
@@ -153,8 +152,10 @@ PROGRAM dictfields
     CALL print_test_result(equal2)
     CALL print_test_result(equal3)
 
+    PRINT*, "Host tests..."
     ! Check values after copying back
-    !$omp target update from(field_1%arr, field_2%arr)
+    !$omp target update from(mapper(maparr): field_1, field_2)
+    !!$omp target update from(field_1%arr, field_2%arr)
     ! field_1: (host) arr=42.0           (target) arr=42.0
     ! field_2: (host) arr=42.0, buf=2.0  (target) arr=42.0, buf=2.0
     expected_result = val1
@@ -168,7 +169,9 @@ PROGRAM dictfields
     expected_result = val3
     CALL compare(field_2%buffers, expected_result)
 
-    !$omp target update to(field_2%buffers) ! (host) arr=42.0, buf=-1.0  (target) arr=42.0, buf=-1.0
+    PRINT*, "Device test buffer update..."
+    !$omp target update to(mapper(mapbuffers): field_2)
+    !!$omp target update to(field_2%buffers) ! (host) arr=42.0, buf=-1.0  (target) arr=42.0, buf=-1.0
     !$omp target map(alloc: expected_result) map(from: equal1)
     expected_result = val3
     CALL compare_on_device(field_2%buffers, expected_result, equal1)
@@ -186,8 +189,8 @@ CONTAINS
         TYPE(field_t), POINTER :: field
         CALL get_field(field, field_id)
 
-        !$omp target teams loop map(mapper(arr), tofrom: field)
-        DO i = 1, num_elements
+        !$omp target teams loop
+        DO i = 1, ncells
             field%arr(i) = val
         END DO
         !$omp end target teams loop
