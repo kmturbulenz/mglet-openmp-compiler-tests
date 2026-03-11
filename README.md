@@ -56,6 +56,7 @@ The data shown in the feature matrix below has been obtained using the following
 | builtin-01-math | &check; | &check; | &check; | Compiler crash | &check; |
 | builtin-02-print | Prints "*" for non-string literals | &check; | Linking error | &check; | No char arrays and combinations are allowed |
 | builtin-03-ieee | &check; | &check; | &check; | &check; | &check; |
+| builtin-04-real-precision | &check; | &check; | &check; | `real(10)` not supported on target | &check; |
 | mapper-01-inter-module | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | &check; |
 | mapper-02-basetype | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | &check; |
 | mapper-03-variants | &check; | Custom mappers unsupported | Custom mappers unsupported | &check;  | mapper(default) does not compile |
