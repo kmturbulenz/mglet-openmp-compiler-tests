@@ -1,31 +1,31 @@
 # MGLET OpenMP compiler tests
 
-As maintainers of the [MGLET CFD 
-code](https://github.com/kmturbulenz/mglet-base) we are investigating 
-how to offload the MGLET code to GPU and APU devices as these become 
-more common. MGLET is written in Fortran, with roots back to the early 
-1980's but has been heavily modernized over the last decade. Today it is 
-a modern, flexible code that allows for efficient implementation of new 
+As maintainers of the [MGLET CFD
+code](https://github.com/kmturbulenz/mglet-base) we are investigating
+how to offload the MGLET code to GPU and APU devices as these become
+more common. MGLET is written in Fortran, with roots back to the early
+1980's but has been heavily modernized over the last decade. Today it is
+a modern, flexible code that allows for efficient implementation of new
 physics and features using many modern software development principles.
 
-During the work with implementing OpenMP offloading in MGLET we 
-discovered bugs, implementation differences and other issues that lead 
-to a number of difficulties. In order to assess what works and what not, 
-we have created this collection of small code examples, all 
-demonstrating operations that needs to work in MGLET. These were 
-originally created to be able to pick features that work stable, not 
-only on one system but across different hardware and software 
+During the work with implementing OpenMP offloading in MGLET we
+discovered bugs, implementation differences and other issues that lead
+to a number of difficulties. In order to assess what works and what not,
+we have created this collection of small code examples, all
+demonstrating operations that needs to work in MGLET. These were
+originally created to be able to pick features that work stable, not
+only on one system but across different hardware and software
 implementations.
 
-The implementations and platforms presented here are just those that we 
-happen to have access to, and new platforms might be added in the future 
+The implementations and platforms presented here are just those that we
+happen to have access to, and new platforms might be added in the future
 in case we gain access to any.
 
-We have realized that these tests/demonstrations can be useful for other 
-Fortran programmers and/or compiler developers. We therefore decided to 
-make this public, and hope that this collection will help enhance the 
-quality of OpenMP offloading implementations in Fortran, both on the 
-application side using OpenMP and on the implementation side creating 
+We have realized that these tests/demonstrations can be useful for other
+Fortran programmers and/or compiler developers. We therefore decided to
+make this public, and hope that this collection will help enhance the
+quality of OpenMP offloading implementations in Fortran, both on the
+application side using OpenMP and on the implementation side creating
 the libraries and compilers.
 
 # Testcases
@@ -71,6 +71,7 @@ The data shown in the feature matrix below has been obtained using the following
 | loop-01-index | &check; | Compiler crash | &check; | &check; | &check; |
 | loop-02-ptr | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | Only with non-class subroutine and inlining disabled |
 | loop-03-pass-dims | &check; | Fails due to using member variable arr | &check; | &check; | &check; |
+| loop-04-multiple-parallel | &check; | N/A | N/A | fails | N/A |
 
 ## MGLET mockup
 The case `mglet-mockup` combines all complexity previously tested to run a very slimmed down version of the MGLET core functionality using OpenMP offloading. No specific computation is performed. Data management and best-practice iteration over the data is applied. Any necessary workarounds for compiler bugs or missing features that can be implemented with low effort are applied.
@@ -109,7 +110,7 @@ END DO
 
 SUBROUTINE kernel(ptr)
     !$omp declare target
-    REAL, INTENT(INOUT), DIMENSION(cpd, cpd, cpd) :: ptr 
+    REAL, INTENT(INOUT), DIMENSION(cpd, cpd, cpd) :: ptr
 
     ! Note: use bind(parallel) for __flang__ when targeting AMD
     !       bind(thread) is just an inefficient workaround for NVIDIA
@@ -148,7 +149,7 @@ The following table shows compiler flags required to instruct targets to offload
 | nvfortran | `-mp` | `-mp=gpu` (only NVIDIA GPUs, optionally specify architecture with additional flag `-gpu=cc120`) | - | `-gpu=mem:unified` to activate unified shared memory, `requires unified_shared_memory` is accepted but ignored |
 | amdflang | `-fopenmp` | `--offload-arch=...` | e.g. `MI250` or `gfx90a` | `-fopenmp-force-usm` available |
 | gfortran | `-fopenmp` | `-foffload=...` | `nvptx-none`, `amdgcn-amdhsa`, `default`, `disable` |
-| flang | `-fopenmp` | `-fopenmp-targets` | e.g. `x86_64-unknown-linux-gnu`, `nvptx64-nvidia-cuda`, `amdgcn-amd-amdhsa`, `aarch64-unknown-linux-gnu` | 
+| flang | `-fopenmp` | `-fopenmp-targets` | e.g. `x86_64-unknown-linux-gnu`, `nvptx64-nvidia-cuda`, `amdgcn-amd-amdhsa`, `aarch64-unknown-linux-gnu` |
 | ftn | `-fopenmp` works for cc, CC and ftn, `-h omp` only for ftn | activated by default | - | `-fopenmp-force-usm` available |
 
 ## Environment variables
@@ -160,4 +161,4 @@ The following table shows environment flags that are useful for debugging OpenMP
 | NVIDIA HPCSDK | `NVCOMPILER_ACC_NOTIFY=<0;1;2;4;8;16>`: Runtime debug information<br>`NVCOMPILER_OMP_DISABLE_WARNINGS=<false;true>`: Generate warnings during runtime | [HPCSDK docs](https://docs.nvidia.com/hpc-sdk/compilers/hpc-compilers-user-guide/) |
 | ROCm | `LIBOMPTARGET_DEBUG=<0;1>`: OpenMP runtime debug information<br>`LIBOMPTARGET_INFO=<0;1;-1>`: Device information<br>`LIBOMPTARGET_KERNEL_TRACE=<0;1;2>`: Kernel information | [AMD docs](https://rocm.docs.amd.com/projects/llvm-project/en/docs-7.2.0/conceptual/openmp.html) |
 | LLVM | `LIBOMPTARGET_DEBUG=<0;1>`: OpenMP runtime debug information (only if LLVM is compiled with `-DOMPTARGET_DEBUG`)<br>`LIBOMPTARGET_INFO=<0;1;2;4;8;16;32>`: Offloading information<br>`LIBOMPTARGET_PROFILE=<filename>`: Generate time profile output (only if LLVM is compiled with `OPENMP_ENABLE_LIBOMP_PROFILING=ON`)<br>`LIBOMPTARGET_PROFILE_GRANULARITY=<us>`: Set time profile granularity in us | [LLVM docs](https://openmp.llvm.org/design/Runtimes.html) |
-| Cray HLRS | `CRAY_ACC_DEBUG=<0;1;2;3>`: OpenMP runtime debug information | [HLRS docs](https://kb.hlrs.de/platforms/index.php/Programming_Models), [HPE docs](https://cpe.ext.hpe.com/docs/24.03/guides/CCE/HPE_Cray_Fortran_Reference_Manual_17.0.1_S-3901.html) | 
+| Cray HLRS | `CRAY_ACC_DEBUG=<0;1;2;3>`: OpenMP runtime debug information | [HLRS docs](https://kb.hlrs.de/platforms/index.php/Programming_Models), [HPE docs](https://cpe.ext.hpe.com/docs/24.03/guides/CCE/HPE_Cray_Fortran_Reference_Manual_17.0.1_S-3901.html) |
