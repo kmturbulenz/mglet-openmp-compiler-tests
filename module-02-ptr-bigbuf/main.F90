@@ -29,7 +29,7 @@ CONTAINS
         !$omp target update to(left, right, bigbuf)
 
         IF (ALLOCATED(buffer)) THEN
-            !$omp target exit data map(always, delete: buffer)
+            !$omp target exit data map(delete: buffer)
             DEALLOCATE(buffer)
         END IF
         ALLOCATE(buffer(nbytes))

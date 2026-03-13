@@ -64,7 +64,7 @@ The data shown in the feature matrix below has been obtained using the following
 | mapper-05-alloc-field | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | *Test invalid (USM)* |
 | mapper-06-nested | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | *Test invalid (USM)* |
 | module-01-buf | &check; | &check; | &check; | &check; | &check; |
-| module-02-ptr-bigbuf | &check; | &check; | &check; | &check; | &check; |
+| module-02-ptr-bigbuf | &check; | Illegal memory access | &check; | &check; | &check; |
 | type-01-procedures | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | &check; |
 | type-02-generics | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | &check; |
 | type-03-basefunc | Runtime Linking error | Call to type-bound procedures not allowed on device | &check; | &check; | Linker error |
