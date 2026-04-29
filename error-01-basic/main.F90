@@ -16,7 +16,10 @@ CONTAINS
         CHARACTER(len=*), INTENT(in) :: fname
         INTEGER(int32), INTENT(in) :: line
 
-        !$omp error message("File: " // fname)
+        !$omp error at(execution) message("File: " // fname)
+
+        ! Exectuion error as opposed to compile time error.
+        ! The latter is "at(compilation)".
 
     END SUBROUTINE errr
 
