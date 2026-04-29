@@ -1,5 +1,5 @@
-### loop-03-pass-dims
+### variants-01-basic
 
-Tests if a grid dims can be passed into the kernel function to specify the pointer size in the input argument.
+Tests if a device variant of a function can be declared.
 
-This feature is critical to minimize rewriting efforts in MGLET as it is heavily used throughout the code.
+In this example, the "variant" mechanism is used for error handling.
