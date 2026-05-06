@@ -138,19 +138,19 @@ The following table shows the OpenMP offloading compatibility between vendors an
 | GPU Vendor | Intel oneAPI | NVIDIA HPCSDK | ROCm | GNU | LLVM | Cray HLRS |
 |---|---|---|---|---|---|---|
 | Intel | &check; | &cross; | &cross; | &cross; | &cross; | &cross; |
-| NVIDIA | &cross; | &check; | &cross; | &check; | &check; | &cross; |
+| NVIDIA | &cross; | &check; | &cross; | &check; | &check; | &check; |
 | AMD | &cross; | &cross; | &check; | &check; | &check; | &check; |
 
 ## Compiler flags
 The following table shows compiler flags required to instruct targets to offload to:
-| Compiler | OpenMP Flag | Target Flag | Target Platforms | USM |
-|---|---|---|---|---|
-| ifx | `-fiopenmp` | `-fopenmp-targets=...` | `OFF`, `spir64`, `spir64_x86_64`, `spir64_gen` | - |
-| nvfortran | `-mp` | `-mp=gpu` (only NVIDIA GPUs, optionally specify architecture with additional flag `-gpu=cc120`) | - | `-gpu=mem:unified` to activate unified shared memory, `requires unified_shared_memory` is accepted but ignored |
-| amdflang | `-fopenmp` | `--offload-arch=...` | e.g. `MI250` or `gfx90a` | `-fopenmp-force-usm` available |
-| gfortran | `-fopenmp` | `-foffload=...` | `nvptx-none`, `amdgcn-amdhsa`, `default`, `disable` |
-| flang | `-fopenmp` | `-fopenmp-targets` | e.g. `x86_64-unknown-linux-gnu`, `nvptx64-nvidia-cuda`, `amdgcn-amd-amdhsa`, `aarch64-unknown-linux-gnu` |
-| ftn | `-fopenmp` works for cc, CC and ftn, `-h omp` only for ftn | activated by default | - | `-fopenmp-force-usm` available |
+| Compiler | OpenMP Flag | Target Flag |
+|---|---|---|
+| ifx | `-fiopenmp` | `-fopenmp-targets=<spir64,spir64_x86_64,spir64_gen>` |
+| nvfortran | `-mp` | `-mp=gpu`, optionally specify architecture with additional flag `-gpu=<cc80,cc90,cc120,etc.>`) |
+| amdflang | `-fopenmp` | `--offload-arch=<gfx90a,gfx942,etc.>` |
+| gfortran | `-fopenmp` | `-foffload=<nvptx-none,amdgcn-amdhsa,default,disable>` |
+| flang | `-fopenmp` |`-fopenmp-targets=<nvptx64-nvidia-cuda,amdgcn-amd-amdhsa,etc.>` - architecture is automatically deduced for NVIDIA. Use `--offload-arch=<...>` for AMD GPUs (see amdflang reference) |
+| ftn | `-fopenmp` works for cc, CC and ftn, `-h omp` only for ftn | Activated by default, `-fopenmp-targets=<...>` available but not mandatory |
 
 ## Environment variables
 The following table shows environment flags that are useful for debugging OpenMP offloading issues during runtime:
