@@ -28,17 +28,41 @@ quality of OpenMP offloading implementations in Fortran, both on the
 application side using OpenMP and on the implementation side creating
 the libraries and compilers.
 
-# Testcases
+# Build Instructions
 
-## Usage
-Follow these steps to compile and run the testcases with the provided Makefiles:
+## Prerequisites
 
-1. Setup relevant compiler toolchain
-2. `cd` into any testcase
-3. Use `FFLAGS=<...> make <intel;amd;nvidia;gnu;llvm;cray>` to compile a testcase. The options `intel`, `amd`, `gnu` and `llvm` require an OpenMP offloading target platform in `FFLAGS`. Available options are listed in the table [Compiler Flags](#compiler-flags). OpenMP is enabled in the Makefile by default. You can also use `FFLAGS` to append other flags
-4. `make run` to run the executable with mandatory OpenMP offloading
+A compiler toolchain capable of OpenMP offloading must be available in the environment.
 
-## Feature matrix
+## Setup
+
+Configure the project with CMake. Set OFFLOAD_TARGET_FLAG to the compiler-specific offload target option, see [Compiler Flags](#compiler-flags) below. OpenMP is automatically enabled for all relevant compiler suites.
+```
+mkdir build && cd build
+cmake .. -DOFFLOAD_TARGET_FLAG=<...>
+```
+
+## Building Test Cases
+
+Build all test cases with:
+```
+cmake --build .
+```
+To keep building independent targets after a build error, pass the underlying build-tool option:
+- Make: `cmake --build . -- -k`
+- Ninja: `cmake --build . -- -k 0`
+
+To build an individual test case, specify the target:
+```
+cmake --build . --target <test-name>
+```
+
+## Running Test Cases
+
+- Run individual tests with `OMP_TARGET_OFFLOAD=mandatory`.
+- To execute all test cases, use the `run-tests.sh` script.
+
+# Feature matrix
 
 The data shown in the feature matrix below has been obtained using the following compilers and hardware:
 
