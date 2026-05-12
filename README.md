@@ -69,7 +69,7 @@ The data shown in the feature matrix below has been obtained using the following
 | Compiler suite | Fortran Compiler version | GPU |
 |---|---|---|
 | Intel oneAPI | ifx (IFX) 2025.3.0 20251010 | Intel Data Center GPU Max 1550 |
-| NVIDIA HPCSDK | nvfortran 25.11-0 64-bit target on x86-64 Linux -tp znver5 | NVIDIA GeForce RTX 5070 Ti |
+| NVIDIA HPCSDK | nvfortran 26.3-0 64-bit target on x86-64 Linux -tp znver5 | NVIDIA GeForce RTX 5070 Ti |
 | ROCm | *tbd (only for >ROCm 7.0)*  | *tbd* |
 | GNU | GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0 | NVIDIA GeForce RTX 5070 Ti |
 | LLVM | flang version 23.0.0git (git@github.com:llvm/llvm-project.git 84812fd1e7036ba28fb2136839b7a0a0d9010a63) | NVIDIA GeForce RTX 5070 Ti |
