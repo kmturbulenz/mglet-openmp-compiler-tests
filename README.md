@@ -72,7 +72,7 @@ The data shown in the feature matrix below has been obtained using the following
 | NVIDIA HPCSDK | nvfortran 25.11-0 64-bit target on x86-64 Linux -tp znver5 | NVIDIA GeForce RTX 5070 Ti |
 | ROCm | *tbd (only for >ROCm 7.0)*  | *tbd* |
 | GNU | GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0 | NVIDIA GeForce RTX 5070 Ti |
-| LLVM | flang version 23.0.0git (git@github.com:llvm/llvm-project.git b86f24fd0ed47238ddfa1292bbd89d1ec10d774c) | NVIDIA GeForce RTX 5070 Ti |
+| LLVM | flang version 23.0.0git (git@github.com:llvm/llvm-project.git 84812fd1e7036ba28fb2136839b7a0a0d9010a63) | NVIDIA GeForce RTX 5070 Ti |
 | Cray HLRS | Cray Fortran : Version 20.0.0 (20250827170814_8a1c0a28f36ae0bf2fce3f49eb977f008b7bbf87) | AMD Instinct MI300A |
 
 | Case | Intel oneAPI | NVIDIA HPCSDK | GNU | LLVM | Cray HLRS |
