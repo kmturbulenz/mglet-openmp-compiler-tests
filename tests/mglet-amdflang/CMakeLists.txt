@@ -1,0 +1,10 @@
+add_executable(mglet-amdflang 
+    src/const_mod.F90
+    src/grids_mod.F90
+    src/basefield_mod.F90
+    src/realfield_mod.F90
+    src/fieldmapper_mod.F90
+    src/fields_mod.F90
+    src/compute_mod.F90
+    src/main.F90
+)
