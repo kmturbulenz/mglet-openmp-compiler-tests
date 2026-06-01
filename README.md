@@ -70,38 +70,38 @@ The data shown in the feature matrix below has been obtained using the following
 |---|---|---|
 | Intel oneAPI | ifx (IFX) 2025.3.0 20251010 | Intel Data Center GPU Max 1550 |
 | NVIDIA HPCSDK | nvfortran 26.3-0 64-bit target on x86-64 Linux -tp znver5 | NVIDIA GeForce RTX 5070 Ti |
-| ROCm | *tbd (only for >ROCm 7.0)*  | *tbd* |
+| ROCm | AMD AFAR drop #23.2.0 04/18/26 flang version 23.0.0git (https://github.com/ROCm/llvm-project.git 35849413f758a222a8094acf1ec81eb80f601335+PATCHED:440716f8b87be9d8e20ed910e10e5b6d14d57cf6) | AMD Radeon AI PRO R9700 |
 | GNU | GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0 | NVIDIA GeForce RTX 5070 Ti |
 | LLVM | flang version 23.0.0git (git@github.com:llvm/llvm-project.git 84812fd1e7036ba28fb2136839b7a0a0d9010a63) | NVIDIA GeForce RTX 5070 Ti |
 | Cray HLRS | Cray Fortran : Version 20.0.0 (20250827170814_8a1c0a28f36ae0bf2fce3f49eb977f008b7bbf87) | AMD Instinct MI300A |
 
-| Case | Intel oneAPI | NVIDIA HPCSDK | GNU | LLVM | Cray HLRS |
-|---|---|---|---|---|---|
-| builtin-01-math | &check; | &check; | &check; | &check; | &check; |
-| builtin-02-print | Prints "*" for non-string literals | &check; | Linking error | &check; | No char arrays and combinations are allowed |
-| builtin-03-ieee | &check; | &check; | &check; | &check; | &check; |
-| builtin-04-real-precision | &check; | &check; | &check; | `real(10)` not supported on target | &check; |
-| mapper-01-inter-module | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | &check; |
-| mapper-02-basetype | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | &check; |
-| mapper-03-variants | &check; | Custom mappers unsupported | Custom mappers unsupported | &check;  | mapper(default) does not compile |
-| mapper-04-dictfields | Compiler crash | Custom mappers unsupported | Custom mappers unsupported | &check; | *Test invalid (USM)* |
-| mapper-05-alloc-field | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | *Test invalid (USM)* |
-| mapper-06-nested | &check; | Custom mappers unsupported | Custom mappers unsupported | &check; | *Test invalid (USM)* |
-| module-01-buf | &check; | &check; | &check; | &check; | &check; |
-| module-02-ptr-bigbuf | &check; | Illegal memory access | &check; | &check; | &check; |
-| type-01-procedures | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | &check; |
-| type-02-generics | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | &check; |
-| type-03-basefunc | Runtime Linking error | Call to type-bound procedures not allowed on device | &check; | &check; | Linker error |
-| loop-01-index | &check; | Compiler crash | &check; | &check; | &check; |
-| loop-02-ptr | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | Only with non-class subroutine and inlining disabled |
-| loop-03-pass-dims | &check; | Fails due to using member variable arr | &check; | &check; | &check; |
-| loop-04-multiple-parallel | &check; | N/A | N/A | fails | N/A |
+| Case | Intel oneAPI | NVIDIA HPCSDK | ROCm | GNU | LLVM | Cray HLRS |
+|---|---|---|---|---|---|---|
+| builtin-01-math | &check; | &check; | &check; | &check; | &check; | &check; |
+| builtin-02-print | Prints "*" for non-string literals | &check; | Cuts off char arrays | Linking error | &check; | No char arrays and combinations are allowed |
+| builtin-03-ieee | &check; | &check; | &check; | &check; | &check; | &check; |
+| builtin-04-real-precision | &check; | &check; | &check; | &check; | `real(10)` not supported on target | &check; |
+| mapper-01-inter-module | &check; | Custom mappers unsupported | &check; | Custom mappers unsupported | &check; | &check; |
+| mapper-02-basetype | &check; | Custom mappers unsupported | &check; | Custom mappers unsupported | &check; | &check; |
+| mapper-03-variants | &check; | Custom mappers unsupported | &check; | Custom mappers unsupported | &check;  | mapper(default) does not compile |
+| mapper-04-dictfields | Compiler crash | Custom mappers unsupported | &check; | Custom mappers unsupported | &check; | *Test invalid (USM)* |
+| mapper-05-alloc-field | &check; | Custom mappers unsupported | &check; | Custom mappers unsupported | &check; | *Test invalid (USM)* |
+| mapper-06-nested | &check; | Custom mappers unsupported | &check; | Custom mappers unsupported | &check; | *Test invalid (USM)* |
+| module-01-buf | &check; | &check; | &check; | &check; | &check; | &check; |
+| module-02-ptr-bigbuf | &check; | Illegal memory access | &check; | &check; | &check; | &check; |
+| type-01-procedures | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | &check; | &check; |
+| type-02-generics | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | &check; | &check; |
+| type-03-basefunc | Runtime Linking error | Call to type-bound procedures not allowed on device | &check; | &check; | &check; | Linker error |
+| loop-01-index | &check; | Compiler crash | &check; | &check; | &check; | &check; |
+| loop-02-ptr | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | &check; | Only with non-class subroutine and inlining disabled |
+| loop-03-pass-dims | &check; | Fails due to using member variable arr | &check; | &check; | &check; | &check; |
+| loop-04-multiple-parallel | &check; | N/A | &check; |  N/A | fails | N/A |
 
 ## MGLET mockup
 The case `mglet-mockup` combines all complexity previously tested to run a very slimmed down version of the MGLET core functionality using OpenMP offloading. No specific computation is performed. Data management and best-practice iteration over the data is applied. Any necessary workarounds for compiler bugs or missing features that can be implemented with low effort are applied.
-|  | Intel oneAPI | NVIDIA HPCSDK | GNU | LLVM | Cray HLRS |
-|---|---|---|---|---|---|
-| mglet-mockup | &check; | &cross; | &cross; | &check; | Only with `-D_INDEX_` (default) and `-D_NO_CUSTOM_DEFAULT_MAPPER_` |
+|  | Intel oneAPI | NVIDIA HPCSDK | ROCm | GNU | LLVM | Cray HLRS |
+|---|---|---|---|---|---|---|
+| mglet-mockup | &check; | &cross; | &check; | &cross; | &check; | Only with `-D_INDEX_` (default) and `-D_NO_CUSTOM_DEFAULT_MAPPER_` |
 
 ## Orphaned Loop Bind
 
