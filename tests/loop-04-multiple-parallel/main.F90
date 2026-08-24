@@ -35,30 +35,21 @@ PROGRAM reproducer
     DEALLOCATE(computed_odd)
 CONTAINS
     SUBROUTINE test()
-        REAL, POINTER, CONTIGUOUS :: arr_ptr(:, :, :)
         INTEGER :: igrid, idx
 
-        !$omp target teams loop bind(teams) map(from: computed_even, computed_odd) private(idx)
+        !$omp target teams distribute map(from: computed_even, computed_odd) private(idx)
         DO igrid = 1, ngrids
             idx = (igrid - 1) * cpg + 1
 
-#ifndef _BIND_THREAD_
             !$omp parallel
-#endif
             CALL inner1(computed_even(idx), REAL(igrid))
-#ifndef _BIND_THREAD_
             !$omp end parallel
-#endif
 
-#ifndef _BIND_THREAD_
             !$omp parallel
-#endif
             CALL inner2(computed_odd(idx), REAL(igrid))
-#ifndef _BIND_THREAD_
             !$omp end parallel
-#endif
         END DO
-        !$omp end target teams loop
+        !$omp end target teams distribute
 
         CALL compare(computed_even, expected_even)
         CALL compare(computed_odd, expected_odd)
@@ -72,13 +63,7 @@ CONTAINS
 
         INTEGER :: i, j, k
 
-        !$omp loop &
-#ifdef _BIND_THREAD_
-        !$omp bind(thread) &
-#else
-        !$omp bind(parallel) &
-#endif
-        !$omp collapse(3)
+        !$omp do collapse(3)
         DO i = 1, cpd
             DO j = 1, cpd
                 DO k = 1, cpd
@@ -86,7 +71,7 @@ CONTAINS
                 END DO
             END DO
         END DO
-        !$omp end loop
+        !$omp end do
     END SUBROUTINE inner1
 
 
@@ -97,13 +82,7 @@ CONTAINS
 
         INTEGER :: i, j, k
 
-        !$omp loop &
-#ifdef _BIND_THREAD_
-        !$omp bind(thread) &
-#else
-        !$omp bind(parallel) &
-#endif
-        !$omp collapse(3)
+        !$omp do collapse(3)
         DO i = 1, cpd
             DO j = 1, cpd
                 DO k = 1, cpd
@@ -111,12 +90,12 @@ CONTAINS
                 END DO
             END DO
         END DO
-        !$omp end loop
+        !$omp end do
     END SUBROUTINE inner2
 
 
     SUBROUTINE compute_expected()
-        INTEGER :: igrid, idx, odd
+        INTEGER :: igrid, idx
 
         DO igrid = 1, ngrids
             idx = (igrid - 1) * cpg + 1

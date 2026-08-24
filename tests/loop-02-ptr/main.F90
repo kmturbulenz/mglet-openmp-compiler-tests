@@ -61,32 +61,18 @@ CONTAINS
 
         ALLOCATE(field%arr(ncells), source=1.0)
 
-        !$omp target teams loop bind(teams) private(arr_ptr) map(tofrom: field)
+        !$omp target teams distribute private(arr_ptr) map(tofrom: field)
         DO igrid = 1, ngrids
 #ifdef _PTR_TYP_
             CALL get_ptr_typ(field, arr_ptr, igrid)
 #else
             CALL field%get_ptr_class(arr_ptr, igrid)
 #endif
-#if defined(__INTEL_COMPILER)
             !$omp parallel
-#endif
-#if defined(_CRAYFTN)
-            ! Cray currently has a bug such that data copying is only
-            ! correct if inlining is disabled when calling the kernel
-            ! if the pointer is constructed through a subroutine
-            ! taking in a derived type
-            !DIR$ NOINLINE
-#endif
             CALL inner(arr_ptr, REAL(igrid))
-#if defined(_CRAYFTN)
-            !DIR$ RESETINLINE
-#endif
-#if defined(__INTEL_COMPILER)
             !$omp end parallel
-#endif
         END DO
-        !$omp end target teams loop 
+        !$omp end target teams distribute
 
         CALL compare(field%arr, expected_result)
 
@@ -100,13 +86,7 @@ CONTAINS
 
         INTEGER :: i, j, k
 
-        !$omp loop &
-#if defined(__INTEL_COMPILER) || defined(__NVCOMPILER)
-        !$omp bind(parallel) &
-#elif defined(__flang__) || defined(_CRAYFTN) || defined(__GFORTRAN__)
-        !$omp bind(thread) &
-#endif
-        !$omp collapse(3)
+        !$omp do collapse(3)
         DO i = 1, cpd 
             DO j = 1, cpd 
                 DO k = 1, cpd 
@@ -114,7 +94,7 @@ CONTAINS
                 END DO
             END DO
         END DO
-        !$omp end loop
+        !$omp end do
     END SUBROUTINE inner
 
     SUBROUTINE compute_expected()

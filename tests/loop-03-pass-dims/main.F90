@@ -66,19 +66,16 @@ CONTAINS
 
         ALLOCATE(field%arr(ncells), source=1.0)
 
-        !$omp target teams loop bind(teams) shared(field) private(ip3, kk, jj, ii)
+        !$omp target teams distribute shared(field) private(ip3, kk, jj, ii)
         DO igrid = 1, ngrids
             CALL get_dims(kk, jj, ii, igrid)
             CALL get_ip3(ip3, igrid)
-#if defined(__INTEL_COMPILER)
+
             !$omp parallel
-#endif
             CALL inner(kk, jj, ii, field%arr(ip3), REAL(igrid))
-#if defined(__INTEL_COMPILER)
             !$omp end parallel
-#endif
         END DO
-        !$omp end target teams loop 
+        !$omp end target teams distribute
 
         CALL compare(field%arr, expected_result)
 
@@ -93,13 +90,7 @@ CONTAINS
 
         INTEGER :: i, j, k
 
-        !$omp loop &
-#if defined(__INTEL_COMPILER) || defined(__NVCOMPILER)
-        !$omp bind(parallel) &
-#elif defined(__flang__) || defined(_CRAYFTN) || defined(__GFORTRAN__)
-        !$omp bind(thread) &
-#endif
-        !$omp collapse(3)
+        !$omp do collapse(3)
         DO i = 1, ii
             DO j = 1, jj
                 DO k = 1, kk
@@ -107,7 +98,7 @@ CONTAINS
                 END DO
             END DO
         END DO
-        !$omp end loop
+        !$omp end do
     END SUBROUTINE inner
 
     SUBROUTINE compute_expected()

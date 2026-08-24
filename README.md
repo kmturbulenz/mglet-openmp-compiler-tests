@@ -95,69 +95,16 @@ The data shown in the feature matrix below has been obtained using the following
 | type-01-procedures | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | &check; | &check; |
 | type-02-generics | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | &check; | &check; |
 | type-03-basefunc | Runtime Linking error | Call to type-bound procedures not allowed on device | &check; | &check; | &check; | Linker error |
-| loop-01-index | &check; | Compiler crash | &check; | &check; | &check; | &check; |
-| loop-02-ptr | &check; | Call to type-bound procedures not allowed on device | &check; | &check; | &check; | Only with non-class subroutine and inlining disabled |
-| loop-03-pass-dims | &check; | Fails due to using member variable arr | &check; | &check; | &check; | &check; |
-| loop-04-multiple-parallel | &check; | N/A | &check; |  N/A | fails | N/A |
+| loop-01-index | TBD | TBD | TBD | TBD | TBD | TBD |
+| loop-02-ptr | TBD | TBD | TBD | TBD | TBD | TBD |
+| loop-03-pass-dims | TBD | TBD | TBD | TBD | TBD | TBD |
+| loop-04-multiple-parallel | TBD | TBD | TBD | TBD | TBD | TBD |
 
 ## MGLET mockup
 The case `mglet-mockup` combines all complexity previously tested to run a very slimmed down version of the MGLET core functionality using OpenMP offloading. No specific computation is performed. Data management and best-practice iteration over the data is applied. Any necessary workarounds for compiler bugs or missing features that can be implemented with low effort are applied.
 |  | Intel oneAPI | NVIDIA HPCSDK | ROCm | GNU | LLVM | Cray HLRS |
 |---|---|---|---|---|---|---|
 | mglet-mockup | &check; | &cross; | &check; | &cross; | &check; | Only with `-D_INDEX_` (default) and `-D_NO_CUSTOM_DEFAULT_MAPPER_` |
-
-## Orphaned Loop Bind
-
-MGLET typically uses an outer iterating through all grids and calls an inner function that iterates through all cells within the grid. For performance it is critical to instruct OpenMP correctly to get correct parallelization recognizing the orphaned loop behind the function call.
-The snippet below shows how to reach optimal parallelization:
-
-```fortran
-! Prerequisites for snippet:
-! field ... object storing cell data in an 'arr' allocatable
-! cpg   ... number of cells per grid
-! cpd   ... number of cells per dimension in a grid
-! ii    ... number of cells in x-dir
-! jj    ... number of cells in y-dir
-! kk    ... number of cells in z-dir
-
-INTEGER :: index_pointer
-
-!$omp target teams loop bind(teams) private(index_pointer)
-DO igrid = 1, ngrid
-    index_pointer = (igrid - 1) * cpg + 1
-#if defined(__INTEL_COMPILER)
-    !$omp parallel
-#endif
-    CALL kernel(field%arr(index_pointer))
-#if defined(__INTEL_COMPILER)
-    !$omp end parallel
-#endif
-END DO
-!$omp end target teams loop
-
-SUBROUTINE kernel(ptr)
-    !$omp declare target
-    REAL, INTENT(INOUT), DIMENSION(cpd, cpd, cpd) :: ptr
-
-    ! Note: use bind(parallel) for __flang__ when targeting AMD
-    !       bind(thread) is just an inefficient workaround for NVIDIA
-    !$omp loop &
-#if defined(__INTEL_COMPILER) || defined(__NVCOMPILER)
-    !$omp bind(parallel) &
-#elif defined(__flang__) || defined(_CRAYFTN) || defined(__GFORTRAN__)
-    !$omp bind(thread) &
-#endif
-    !$omp collapse(3)
-    DO i = 1, ii
-        DO j = 1, jj
-            DO k = 1, kk
-                ! read and write to ptr(k, j, i) to modify cell values
-            END DO
-        END DO
-    END DO
-    !$omp end loop
-END SUBROUTINE inner
-```
 
 # OpenMP offloading notes
 ## Vendor compatability
