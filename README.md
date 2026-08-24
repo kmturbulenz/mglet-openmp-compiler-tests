@@ -64,6 +64,9 @@ cmake --build . --target <test-name>
 
 # Feature matrix
 
+> [!WARNING]  
+> The feature matrix below is no longer up to date. Several tests are currently being reevaluated and may not be correctly represented in the matrix below.
+
 The data shown in the feature matrix below has been obtained using the following compilers and hardware:
 
 | Compiler suite | Fortran Compiler version | GPU |
