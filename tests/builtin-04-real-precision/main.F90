@@ -1,6 +1,9 @@
 PROGRAM main
     IMPLICIT NONE
 
+    ! This test exists since LLVM flang with NVIDIA hardware still seems to fail
+    ! to compile REAL(10) if a target architecture is specified.
+
 #if defined(_CRAYFTN) || defined(__INTEL_COMPILER)
     ! REAL(10) is not supported with ftn and ifx but REAL(16) is
     REAL(kind=16) :: val
