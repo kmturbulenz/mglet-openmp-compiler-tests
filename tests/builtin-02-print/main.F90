@@ -11,7 +11,7 @@ PROGRAM reproducer
     !$omp end target
 
     PRINT*, "Attempting to print char array:"
-    msg = "char array12345"
+    msg = "char array"
     !$omp target
     PRINT*, msg 
     !$omp end target
