@@ -101,10 +101,14 @@ The data shown in the feature matrix below has been obtained using the following
 | loop-04-multiple-parallel | TBD | TBD | TBD | TBD | TBD | TBD |
 
 ## MGLET mockup
+
+> [!WARNING]  
+> MGLET mockup is currently outdated.
+
 The case `mglet-mockup` combines all complexity previously tested to run a very slimmed down version of the MGLET core functionality using OpenMP offloading. No specific computation is performed. Data management and best-practice iteration over the data is applied. Any necessary workarounds for compiler bugs or missing features that can be implemented with low effort are applied.
 |  | Intel oneAPI | NVIDIA HPCSDK | ROCm | GNU | LLVM | Cray HLRS |
 |---|---|---|---|---|---|---|
-| mglet-mockup | &check; | &cross; | &check; | &cross; | &check; | Only with `-D_INDEX_` (default) and `-D_NO_CUSTOM_DEFAULT_MAPPER_` |
+| mglet-mockup | TBD | TBD | TBD | TBD | TBD | TBD |
 
 # OpenMP offloading notes
 ## Vendor compatability
@@ -123,8 +127,8 @@ The following table shows compiler flags required to instruct targets to offload
 | nvfortran | `-mp` | `-mp=gpu`, optionally specify architecture with additional flag `-gpu=<cc80,cc90,cc120,etc.>`) |
 | amdflang | `-fopenmp` | `--offload-arch=<gfx90a,gfx942,etc.>` |
 | gfortran | `-fopenmp` | `-foffload=<nvptx-none,amdgcn-amdhsa,default,disable>` |
-| flang | `-fopenmp` |`-fopenmp-targets=<nvptx64-nvidia-cuda,amdgcn-amd-amdhsa,etc.>` - architecture is automatically deduced for NVIDIA. Use `--offload-arch=<...>` for AMD GPUs (see amdflang reference) |
-| ftn | `-fopenmp` works for cc, CC and ftn, `-h omp` only for ftn | Activated by default, `-fopenmp-targets=<...>` available but not mandatory |
+| flang | `-fopenmp` |`--offload-arch=<gfx90a,gfx942,sm_86,sm_120,etc.>` |
+| ftn | `-fopenmp` works for cc, CC and ftn, `-h omp` only for ftn | Not required. `-fopenmp-targets=<...>` available |
 
 ## Environment variables
 The following table shows environment flags that are useful for debugging OpenMP offloading issues during runtime:
@@ -133,6 +137,6 @@ The following table shows environment flags that are useful for debugging OpenMP
 | Intel oneAPI | `LIBOMPTARGET_DEBUG=<0;1;2>`: OpenMP runtime debug information runtime<br>`LIBOMPTARGET_INFO=<0;1;2;4;8;32>`: Basic Offloading information runtime<br>`LIBOMPTARGET_PLUGIN_PROFILE=<F;T;T,usec>`: Enables display of performance data | [Intel docs](https://www.intel.com/content/www/us/en/docs/oneapi/programming-guide/2023-1/oneapi-debug-tools.html) |
 | GNU | `GOMP_DEBUG=<0;1>`: OpenMP runtime debug information | [GNU docs](https://gcc.gnu.org/onlinedocs/libgomp/Environment-Variables.html) |
 | NVIDIA HPCSDK | `NVCOMPILER_ACC_NOTIFY=<0;1;2;4;8;16>`: Runtime debug information<br>`NVCOMPILER_OMP_DISABLE_WARNINGS=<false;true>`: Generate warnings during runtime | [HPCSDK docs](https://docs.nvidia.com/hpc-sdk/compilers/hpc-compilers-user-guide/) |
-| ROCm | `LIBOMPTARGET_DEBUG=<0;1>`: OpenMP runtime debug information<br>`LIBOMPTARGET_INFO=<0;1;-1>`: Device information<br>`LIBOMPTARGET_KERNEL_TRACE=<0;1;2>`: Kernel information | [AMD docs](https://rocm.docs.amd.com/projects/llvm-project/en/docs-7.2.0/conceptual/openmp.html) |
-| LLVM | `LIBOMPTARGET_DEBUG=<0;1>`: OpenMP runtime debug information (only if LLVM is compiled with `-DOMPTARGET_DEBUG`)<br>`LIBOMPTARGET_INFO=<0;1;2;4;8;16;32>`: Offloading information<br>`LIBOMPTARGET_PROFILE=<filename>`: Generate time profile output (only if LLVM is compiled with `OPENMP_ENABLE_LIBOMP_PROFILING=ON`)<br>`LIBOMPTARGET_PROFILE_GRANULARITY=<us>`: Set time profile granularity in us | [LLVM docs](https://openmp.llvm.org/design/Runtimes.html) |
+| ROCm | `LIBOMPTARGET_DEBUG=<0;1>`: OpenMP runtime debug information<br>`LIBOMPTARGET_INFO=<-1;0;1;2;4;8;16;32>`: Offload information<br>`LIBOMPTARGET_KERNEL_TRACE=<0;1;2>`: Kernel information | [AMD docs](https://rocm.docs.amd.com/projects/llvm-project/en/docs-7.2.0/conceptual/openmp.html) |
+| LLVM | `LIBOMPTARGET_DEBUG=<0;1>`: OpenMP runtime debug information (only if LLVM is compiled with `-DLIBOMPTARGET_ENABLE_DEBUG=ON`)<br>`LIBOMPTARGET_INFO=<-1;0;1;2;4;8;16;32>`: Offloading information<br>`LIBOMPTARGET_PROFILE=<filename>`: Generate time profile output (only if LLVM is compiled with `OPENMP_ENABLE_LIBOMP_PROFILING=ON`)<br>`LIBOMPTARGET_PROFILE_GRANULARITY=<us>`: Set time profile granularity in us | [LLVM docs](https://openmp.llvm.org/design/Runtimes.html) |
 | Cray HLRS | `CRAY_ACC_DEBUG=<0;1;2;3>`: OpenMP runtime debug information | [HLRS docs](https://kb.hlrs.de/platforms/index.php/Programming_Models), [HPE docs](https://cpe.ext.hpe.com/docs/24.03/guides/CCE/HPE_Cray_Fortran_Reference_Manual_17.0.1_S-3901.html) |
